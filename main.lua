@@ -28,9 +28,9 @@ function field_reset()
     					type=0,
     					hp=100,
     					maxhp=100,
-    					r=1,
-    					g=1,
-    					b=1,
+    					r=255,
+    					g=255,
+    					b=255,
     					bufflist={},
     					text='',
     				}
@@ -106,14 +106,14 @@ function love.load()
     click_mode=nil
     texture={}
     local i=1
-    while love.filesystem.getInfo("textures/"..i..".png") do
+    while love.filesystem.exists("textures/"..i..".png") do
     			texture[i]=love.graphics.newImage("textures/"..i..".png")		
     			i=i+1
     end
 
     i=1
     object_graph={}
-   	while love.filesystem.getInfo("objects/"..i..".png") do
+   	while love.filesystem.exists("objects/"..i..".png") do
     			object_graph[i]=love.graphics.newImage("objects/"..i..".png")		
     			i=i+1
     end
@@ -129,14 +129,14 @@ function love.load()
 
     i=1
     unit_graph={}
-    while love.filesystem.getInfo("units/"..i..".png") do
+    while love.filesystem.exists("units/"..i..".png") do
     			unit_graph[i]=love.graphics.newImage("units/"..i..".png")		
     			i=i+1
     end
 
     i=1
     buff_graph={}
-    while love.filesystem.getInfo("buffs/"..i..".png") do
+    while love.filesystem.exists("buffs/"..i..".png") do
     			buff_graph[i]=love.graphics.newImage("buffs/"..i..".png")		
     			i=i+1
     end
@@ -153,7 +153,7 @@ function love.load()
     	{name = "HP setting", values = {"integer values", "real values", "percentage"}, currentValue = 1}
 	}
 
-	if love.filesystem.getInfo("options.json") then
+	if love.filesystem.exists("options.json") then
 		local filetoopen=love.filesystem.newFile("options.json")
 		filetoopen:open("r")
 		local jsonoptions=filetoopen:read()
@@ -169,8 +169,8 @@ function love.load()
    		end
     end
 
-   	drawr,drawg,drawb=1,1,1;
-   	drawalpha=0.5;
+   	drawr,drawg,drawb=255,255,255;
+   	drawalpha=128;
    	texture_chosen=1;
 
    	textures_fit_x=math.floor(width/hexres/2)
@@ -347,9 +347,9 @@ function love.draw()
 		local text = options.text
 		local lineWidth = options.lineWidth or 1
 		local image = options.image
-		local imageR,imageG,imageB = options.imageR or 1, options.imageG or 1, options.imageB or 1
-		local colorBasic = options.colorBasic or {0,0,0.45}
-		local colorHighlit = options.colorHighlit or {0,0,1}
+		local imageR,imageG,imageB = options.imageR or 255, options.imageG or 255, options.imageB or 255
+		local colorBasic = options.colorBasic or {0,0,120}
+		local colorHighlit = options.colorHighlit or {0,0,255}
 
 		if ((love.mouse.getX()>x and love.mouse.getX()<x+buttonWidth
 		and love.mouse.getY()>y and love.mouse.getY()<y+buttonHeight) or highlight)
@@ -367,17 +367,17 @@ function love.draw()
 			love.graphics.setColor(imageR,imageG,imageB)
 			love.graphics.draw(image,x+buttonWidth*0.5,y+buttonHeight*0.5,0,1,1,image:getWidth()*0.5,image:getHeight()*0.5)
 		end
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 	end
 
 	if screen_mode=='main' then
 		love.graphics.setLineWidth(3)
-		love.graphics.setColor(0.2,0.3,1)
+		love.graphics.setColor(49,79,255)
 		love.graphics.line(width-panel, 0, width-panel, height)
 
 		for i=-hexsize,hexsize do --drawing grid
 			for j=-hexsize,hexsize do
-				love.graphics.setColor(1,1,1)
+				love.graphics.setColor(255,255,255)
 
 				if hexfield[i][j].texture and hexfield[i][j].texture>0 then
 					love.graphics.draw(texture[hexfield[i][j].texture],((i-j)*hexres*3/2-hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
@@ -387,7 +387,7 @@ function love.draw()
 				end
 				love.graphics.setColor(hexfield[i][j].color[1],hexfield[i][j].color[2],hexfield[i][j].color[3],hexfield[i][j].color[4])
 				hexfill((i-j)*hexres*3/2,-(i+j)*math.sqrt(3)/2*hexres)
-				love.graphics.setColor(1-hexfield[i][j].color[1],1-hexfield[i][j].color[2],1-hexfield[i][j].color[3],1)
+				love.graphics.setColor(255-hexfield[i][j].color[1],255-hexfield[i][j].color[2],255-hexfield[i][j].color[3],255)
 				love.graphics.setLineWidth(1)
 				hex((i-j)*hexres*3/2,-(i+j)*math.sqrt(3)/2*hexres)
 				
@@ -397,23 +397,23 @@ function love.draw()
 					love.graphics.setLineWidth(5)
 					if optionValue("Show HP bars")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP bars")) then
 						local hpPercentage = hexfield[i][j].unit.hp/hexfield[i][j].unit.maxhp
-						love.graphics.setColor(1,0,0)
+						love.graphics.setColor(255,0,0)
 						love.graphics.line( ((i-j)*hexres*3/2-hexres-view.x+64-hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y-hexres*2/3)*view.scale+center[2],((i-j)*hexres*3/2-hexres-view.x+64+hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y-hexres*2/3)*view.scale+center[2])
-						love.graphics.setColor(0,1,0)
+						love.graphics.setColor(0,255,0)
 						love.graphics.line( ((i-j)*hexres*3/2-hexres-view.x+64-hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y-hexres*2/3)*view.scale+center[2],((i-j)*hexres*3/2-hexres-view.x+64+hpPercentage*hexres-hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y-hexres*2/3)*view.scale+center[2])
 					end
 
 					if optionValue("HP numbers mode")~="none" and (optionValue("Show HP numbers")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP numbers"))) then
 						local hpText = string.format("%d",hexfield[i][j].unit.hp)..(optionValue("HP numbers mode")=="current and max hp" and string.format("/%d",hexfield[i][j].unit.maxhp) or "")
-						love.graphics.setColor(0,0,0,0.5)
+						love.graphics.setColor(0,0,0,128)
 						love.graphics.rectangle("fill",((i-j)*hexres*3/2-hexres-view.x+64-hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+60-view.y-hexres*2/3)*view.scale+center[2],hexres*view.scale,18*view.scale,6*view.scale,6*view.scale)
-						love.graphics.setColor(1,1,1)
+						love.graphics.setColor(255,255,255)
 						love.graphics.setFont(smallfont)
 						love.graphics.printf(hpText,((i-j)*hexres*3/2-hexres-view.x+64)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y-hexres*2/3)*view.scale+center[2],hexres,"center",0,view.scale,view.scale,hexres/2)
 					end
 
 					if hexfield[i][j].unit.bufflist~={} then
-						love.graphics.setColor(1,1,1,1)
+						love.graphics.setColor(255,255,255,255)
 						local buffspot=0
 						for k in pairs(hexfield[i][j].unit.bufflist) do
 							love.graphics.draw(buff_graph[k],((i-j)*hexres*3/2-hexres-view.x+64-hexres/2+buffspot*16)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*hexres+hexres*math.sqrt(3)/2+40-view.y-hexres)*view.scale+center[2],0,view.scale)
@@ -421,7 +421,7 @@ function love.draw()
 						end
 					end
 				end
-				love.graphics.setColor(1,1,1,1)
+				love.graphics.setColor(255,255,255,255)
 
 				
 			end
@@ -429,38 +429,38 @@ function love.draw()
 
 
 		if camdrag==false and glow then --drawing selection glow
-			love.graphics.setColor(1,1,0.1)
+			love.graphics.setColor(255,255,20)
 			love.graphics.setLineWidth(3)
 			hex((xglow-yglow)*hexres*3/2,-(xglow+yglow)*math.sqrt(3)/2*hexres)
 			if click_mode=='color' then
-				love.graphics.setColor(1,1,1,drawalpha/2)
+				love.graphics.setColor(255,255,255,drawalpha/2)
 				hexfill((xglow-yglow)*hexres*3/2,-(xglow+yglow)*math.sqrt(3)/2*hexres)
 			elseif click_mode=='texture' and texture_chosen~=0 then
-				love.graphics.setColor(1,1,1,0.5)
+				love.graphics.setColor(255,255,255,128)
 				love.graphics.draw(texture[texture_chosen],((xglow-yglow)*hexres*3/2-hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 			elseif click_mode=='object' and object_chosen~=0 then
-				love.graphics.setColor(1,1,1,0.5)
+				love.graphics.setColor(255,255,255,128)
 				draw_object(object_chosen,object_rot,((xglow-yglow)*hexres*3/2-hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2+56-view.y)*view.scale+center[2],view.scale)
 			elseif click_mode=='unit' and unit_chosen~=0 then
-				love.graphics.setColor(1,1,1,0.5)
+				love.graphics.setColor(255,255,255,128)
 				love.graphics.draw(unit_graph[unit_chosen],((xglow-yglow)*hexres*3/2-hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 			elseif click_mode=='unit drag' and unitdrag then
-				love.graphics.setColor(1,1,1,0.5)
+				love.graphics.setColor(255,255,255,128)
 				love.graphics.draw(unit_graph[hexfield[dragtarget.x][dragtarget.y].unit.type],((xglow-yglow)*hexres*3/2-hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 			elseif click_mode=='object drag' and objectdrag then
-				love.graphics.setColor(1,1,1,0.5)
+				love.graphics.setColor(255,255,255,128)
 				draw_object(hexfield[dragtarget.x][dragtarget.y].object.type,hexfield[dragtarget.x][dragtarget.y].object.rotation,((xglow-yglow)*hexres*3/2-hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*hexres-hexres*math.sqrt(3)/2-view.y+56)*view.scale+center[2],view.scale)
 
 			end
 		end
 		
-		love.graphics.setColor(0,0,0,1) --button panel
+		love.graphics.setColor(0,0,0,255) --button panel
 		love.graphics.rectangle('fill',width-panel,0,panel,height)
 
-		love.graphics.setColor(1,1,1) --just info
+		love.graphics.setColor(255,255,255) --just info
 		love.graphics.print("Scale: "..view.scale,width-panel+5)
 
-		love.graphics.setColor(drawr,drawg,drawb,1) --color sample
+		love.graphics.setColor(drawr,drawg,drawb,255) --color sample
 		love.graphics.rectangle('fill',width-panel+20,50,100,100)
 
 		--color sample border
@@ -475,9 +475,9 @@ function love.draw()
 		if texture_chosen>0 then love.graphics.draw(texture[texture_chosen],width-panel+10,200) end
 		--texture sample border
 		if (love.mouse.getX()>width-panel+10 and love.mouse.getX()<width-panel+138 and love.mouse.getY()>200 and love.mouse.getY()<311) or click_mode=='texture' then
-			love.graphics.setColor(0,0,1)
+			love.graphics.setColor(0,0,255)
 		else
-			love.graphics.setColor(0,0,0.6)
+			love.graphics.setColor(0,0,150)
 		end
 		love.graphics.setLineWidth(3)
 		love.graphics.polygon('line',width-panel+42,200,width-panel+106,200,width-panel+138,256,width-panel+106,311,width-panel+42,311,width-panel+10,256)
@@ -491,7 +491,7 @@ function love.draw()
 		button({x=width-panel+10,y=350,width=128,height=111,highlight=(click_mode=='object'),lineWidth=3})
 
 		--rotation button
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.draw(button_rotate, width-panel+150,350)
 
 		--hp button
@@ -509,7 +509,7 @@ function love.draw()
 		--unit sample
 		button({x=width-panel+10,y=500,width=128,height=111,highlight=(click_mode=='unit'),lineWidth=3,image=unit_graph[unit_chosen]})
 
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 
 		if height>=740 then
 			--save button
@@ -522,17 +522,17 @@ function love.draw()
 
 	elseif screen_mode=='palette' then
 		love.graphics.setLineWidth(9)
-		love.graphics.setColor(1,0,0,1)
+		love.graphics.setColor(255,0,0,255)
 		love.graphics.line(100, 100, 355, 100);
 
-		love.graphics.setColor(0,1,0,1)
+		love.graphics.setColor(0,255,0,255)
 		love.graphics.line(100, 200, 355, 200);
 
 
-		love.graphics.setColor(0,0,1,1)
+		love.graphics.setColor(0,0,255,255)
 		love.graphics.line(100, 300, 355, 300);
 
-		love.graphics.setColor(1,1,1,1)
+		love.graphics.setColor(255,255,255,255)
 		love.graphics.line(100, 400, 355, 400);	
 
 		love.graphics.print("RED",365,100);
@@ -541,52 +541,52 @@ function love.draw()
 		love.graphics.print("TRANSPARENCY",365,400);
 
 		love.graphics.setLineWidth(3)
-		love.graphics.line(100+drawr*255,93,100+drawr*255,108);
-		love.graphics.line(100+drawg*255,193,100+drawg*255,208);
-		love.graphics.line(100+drawb*255,293,100+drawb*255,308);
-		love.graphics.line(355-drawalpha*255,393,355-drawalpha*255,408);
-		love.graphics.setColor(drawr,drawg,drawb,1)
+		love.graphics.line(100+drawr,93,100+drawr,108);
+		love.graphics.line(100+drawg,193,100+drawg,208);
+		love.graphics.line(100+drawb,293,100+drawb,308);
+		love.graphics.line(355-drawalpha,393,355-drawalpha,408);
+		love.graphics.setColor(drawr,drawg,drawb,255)
 		love.graphics.rectangle('fill',center[1],0,center[1],height);
 
 		button({x=100,y=500,width=255,height=100,lineWidth=3,text='APPLY'})
 		button({x=100,y=650,width=255,height=100,lineWidth=3,text='PAINT ALL'})
 
 	elseif screen_mode=='texture' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		for i=1,#texture do
 			love.graphics.draw(texture[i],((i-1)%textures_fit_x)*2*hexres,(math.ceil(i/textures_fit_x)-1-offset)*hexres*math.sqrt(3)+20)
 
 		end	
-		love.graphics.setColor(0,0,1)
+		love.graphics.setColor(0,0,255)
 		if love.mouse.getX()<2*hexres*textures_fit_x and love.mouse.getY()<math.sqrt(3)*hexres*textures_fit_y then
 			love.graphics.rectangle('line',2*hexres*(math.ceil(love.mouse.getX()/(hexres*2))-1),20+hexres*math.sqrt(3)*math.floor(love.mouse.getY()/(hexres*math.sqrt(3))),2*hexres,hexres*math.sqrt(3))
-			love.graphics.setColor(1,1,1)
+			love.graphics.setColor(255,255,255)
 		end
 	elseif screen_mode=='object' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		for i=1,#object_graph do
 			love.graphics.draw(object_graph[i],((i-1)%textures_fit_x)*2*hexres,(math.ceil(i/textures_fit_x)-1-offset)*hexres*math.sqrt(3)+20)
 		end	
-		love.graphics.setColor(0,0,1)
+		love.graphics.setColor(0,0,255)
 		if love.mouse.getX()<2*hexres*textures_fit_x and love.mouse.getY()<math.sqrt(3)*hexres*textures_fit_y then
 			love.graphics.rectangle('line',2*hexres*(math.ceil(love.mouse.getX()/(hexres*2))-1),20+hexres*math.sqrt(3)*math.floor(love.mouse.getY()/(hexres*math.sqrt(3))),2*hexres,hexres*math.sqrt(3))
-			love.graphics.setColor(1,1,1)
+			love.graphics.setColor(255,255,255)
 		end
 	elseif screen_mode=='unit' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		for i=1,#unit_graph do
 			love.graphics.draw(unit_graph[i],((i-1)%textures_fit_x)*2*hexres,(math.ceil(i/textures_fit_x)-1-offset)*hexres*math.sqrt(3)+20)
 		end	
-		love.graphics.setColor(0,0,1)
+		love.graphics.setColor(0,0,255)
 		if love.mouse.getX()<2*hexres*textures_fit_x and love.mouse.getY()<math.sqrt(3)*hexres*textures_fit_y then	
 			love.graphics.rectangle('line',2*hexres*(math.ceil(love.mouse.getX()/(hexres*2))-1),20+hexres*math.sqrt(3)*math.floor(love.mouse.getY()/(hexres*math.sqrt(3))),2*hexres,hexres*math.sqrt(3))
-			love.graphics.setColor(1,1,1)
+			love.graphics.setColor(255,255,255)
 		end
 	elseif screen_mode=='properties' then
 		love.graphics.setLineWidth(11)
-		love.graphics.setColor(1,0,0)
+		love.graphics.setColor(255,0,0)
 		love.graphics.line(width/3, height/2, 2*width/3, height/2)
-		love.graphics.setColor(0,1,0)
+		love.graphics.setColor(0,255,0)
 		love.graphics.line(width/3, height/2, width/3*(1+hexfield[hptarget.x][hptarget.y].unit.hp/hexfield[hptarget.x][hptarget.y].unit.maxhp), height/2)
 
 		button({x=width/2-75,y=height/2+100,width=150,height=50,lineWidth=3,text='OK'})
@@ -602,21 +602,21 @@ function love.draw()
 
 		button({x=width*2/3+50,y=height/2-30,width=120,height=60,lineWidth=3,text='Max HP = '..hexfield[hptarget.x][hptarget.y].unit.maxhp})
 
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.setLineWidth(1)
 		love.graphics.rectangle('line',width/2-128,height/2-356,256,256)
 
 		for i=1,#buff_graph do
 
 			if (love.mouse.getX()>((i-1)%8)*32+width/2-128 and love.mouse.getX()<((i-1)%8)*32+width/2-96 and love.mouse.getY()>(math.ceil(i/8)-1)*32+height/2-356 and love.mouse.getY()<(math.ceil(i/8)-1)*32+height/2-324) or hexfield[hptarget.x][hptarget.y].unit.bufflist[i] then
-				love.graphics.setColor(1,1,1)
+				love.graphics.setColor(255,255,255)
 				love.graphics.rectangle('fill',((i-1)%8)*32+width/2-128,(math.ceil(i/8)-1)*32+height/2-356,32,32)
 			end
 			love.graphics.draw(buff_graph[i],((i-1)%8)*32+width/2-128,(math.ceil(i/8)-1)*32+height/2-356,0,2)
 		end
 
 	elseif screen_mode=='saveload' then	
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		for i=1,#map_savefile-1 do
 			love.graphics.draw(button_load,((i-1)%textures_fit_x)*2*hexres+14,(math.ceil(i/textures_fit_x)-1-offset)*hexres*math.sqrt(3)+20)
 			local filename_shown
@@ -634,20 +634,20 @@ function love.draw()
 		end
 
 		if love.mouse.getX()<2*hexres*textures_fit_x and love.mouse.getY()<math.sqrt(3)*hexres*textures_fit_y then
-			love.graphics.setColor(0,0,1)
+			love.graphics.setColor(0,0,255)
 			love.graphics.rectangle('line',2*hexres*(math.ceil(love.mouse.getX()/(hexres*2))-1),20+hexres*math.sqrt(3)*math.floor(love.mouse.getY()/(hexres*math.sqrt(3))),2*hexres,hexres*math.sqrt(3))
 		end
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 	elseif screen_mode=='overwrite' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.setFont(largefont)
 		love.graphics.printf("You are going to overwrite:\n"..filetointeract,width/2-200,height/2-100,400,"center")
 		love.graphics.setFont(smallfont)
 
 		if (love.mouse.getX()>width/3-75 and love.mouse.getX()<width/3+75 and love.mouse.getY()>height/2+100 and love.mouse.getY()<height/2+150) then
-			love.graphics.setColor(0,0,1)
+			love.graphics.setColor(0,0,255)
 		else
-			love.graphics.setColor(0,0,0.6)
+			love.graphics.setColor(0,0,150)
 		end
 
 		button({x=width/3-75,y=height/2+100,width=150,height=50,lineWidth=3,text='OK'})
@@ -655,7 +655,7 @@ function love.draw()
 		button({x=width-225,y=height-125,width=150,height=50,lineWidth=3,text='Delete',colorBasic={120,0,0},colorHighlit={255,0,0}})
 
 	elseif screen_mode=='load' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.setFont(largefont)
 		love.graphics.printf("You are going to open:\n"..filetointeract.."\nUnsaved data will be lost!",width/2-200,height/2-100,400,"center")
 		love.graphics.setFont(smallfont)
@@ -665,7 +665,7 @@ function love.draw()
 		button({x=width-225,y=height-125,width=150,height=50,lineWidth=3,text='Delete',colorBasic={120,0,0},colorHighlit={255,0,0}})
 
 	elseif screen_mode=='save' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.setFont(largefont)
 		love.graphics.printf({{255,255,255},"Enter the name for a new file:\n"..filetointeract,(flashingSymbol and {255,255,255} or {0,0,0}),"|"},width/2-200,height/2-100,400,"center")
 		love.graphics.setFont(smallfont)
@@ -673,7 +673,7 @@ function love.draw()
 		button({x=width/3-75,y=height/2+100,width=150,height=50,lineWidth=3,unhighlight=(filetointeract==""),text='OK'})
 		button({x=2*width/3-75,y=height/2+100,width=150,height=50,lineWidth=3,text='Cancel'})
 	elseif screen_mode=='maxhpset' then
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(255,255,255)
 		love.graphics.setFont(largefont)
 		love.graphics.printf({{255,255,255},"Input new max HP (only numbers accepted):\n"..maxhpnumber,(flashingSymbol and {255,255,255} or {0,0,0}),"|"},width/2-200,height/2-100,400,"center")
 		love.graphics.setFont(smallfont)
@@ -797,13 +797,13 @@ function love.mousepressed( x, y, button )
 			hexfield[xglow][yglow].unit.type=unit_chosen
 			hexfield[xglow][yglow].unit.hp=100
 			hexfield[xglow][yglow].unit.maxhp=100
-			hexfield[xglow][yglow].unit.r=1
-			hexfield[xglow][yglow].unit.g=1
-			hexfield[xglow][yglow].unit.b=1
+			hexfield[xglow][yglow].unit.r=255
+			hexfield[xglow][yglow].unit.g=255
+			hexfield[xglow][yglow].unit.b=255
 			hexfield[xglow][yglow].unit.bufflist={}
 		elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and click_mode=='unit delete' and hexfield[xglow][yglow].unit.type~=0 and glow then --unit delete
 			backup()
-			hexfield[xglow][yglow].unit={type=0,hp=100,maxhp=100,r=1,g=1,b=1,bufflist={}}
+			hexfield[xglow][yglow].unit={type=0,hp=100,maxhp=100,r=255,g=255,b=255,bufflist={}}
 		elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and click_mode=='object delete' and hexfield[xglow][yglow].object.type~=0 and glow then --unit delete
 			backup()
 			hexfield[xglow][yglow].object={type=0,rotation=0}
@@ -814,9 +814,9 @@ function love.mousepressed( x, y, button )
 				hexfield[xglow][yglow].unit.g=drawg
 				hexfield[xglow][yglow].unit.b=drawb
 			else
-				hexfield[xglow][yglow].unit.r=1
-				hexfield[xglow][yglow].unit.g=1
-				hexfield[xglow][yglow].unit.b=1
+				hexfield[xglow][yglow].unit.r=255
+				hexfield[xglow][yglow].unit.g=255
+				hexfield[xglow][yglow].unit.b=255
 			end
 		elseif (x>width-panel+10 and x<width-panel+120 and y>50 and y<150) or (x>width-panel+220 and x<width-panel+270 and y>560 and y<610) and button==2 then
 		 --switch to palette mode
@@ -883,13 +883,13 @@ function love.mousepressed( x, y, button )
 	elseif screen_mode=='palette' and button==1 then
 		if x>=100 and x<=355 then
 			if y>90 and y<110 then
-				drawr=(x-100)/255
+				drawr=x-100
 			elseif y>190 and y<210 then
-				drawg=(x-100)/255
+				drawg=x-100
 			elseif y>290 and y<310 then
-				drawb=(x-100)/255
+				drawb=x-100
 			elseif y>390 and y<410 then
-				drawalpha=(355-x)/255
+				drawalpha=355-x
 			elseif y>500 and y<600 then
 				screen_mode='main'
 				love.mouse.setPosition(width-panel+65,100)
@@ -1084,13 +1084,13 @@ function love.mousemoved(x, y, dx, dy)
 	elseif screen_mode=='palette' then
 		if x>=100 and x<=355 and love.mouse.isDown(1) then
 			if y>90 and y<110 then
-				drawr=(x-100)/255
+				drawr=x-100
 			elseif y>190 and y<210 then
-				drawg=(x-100)/255
+				drawg=x-100
 			elseif y>290 and y<310 then
-				drawb=(x-100)/255
+				drawb=x-100
 			elseif y>390 and y<410 then
-				drawalpha=(355-x)/255
+				drawalpha=355-x
 			elseif y>500 and y<600 then
 				screen_mode='main'
 			elseif y>650 and y<750 then
