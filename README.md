@@ -1,5 +1,5 @@
-#Hexagonal field 1.3.4 (Hexfield)
-##By Stanislav Baranov / Spellweaver (spellsweaver@gmail.com)
+# Hexagonal field 1.3.4 (Hexfield)
+## By Stanislav Baranov / Spellweaver (spellsweaver@gmail.com)
 
 This application is aimed on creating hexagonal field for a tabletop game, such as D&D, with some extra convenience features.
 It is NOT a game by itself and most likely not going to be one. All changes to the environment are made solely by game master/player, not by application itself.
