@@ -9,6 +9,7 @@ local utf8 = require("utf8")
 local states = require("states")
 local fileHelper = require("fileHelper")
 local geometry = require("hexagonalGeometryHelper")
+local deepcopy = require("deepcopy")
 
 function fieldReset()
 	lastsavename=""
@@ -45,21 +46,6 @@ function autosave()
 	fileHelper.saveTable("maps/autosave.hxm", hexfield)
 	fileHelper.saveTable("options.json", options)
 	return false
-end
-
-local function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-				copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else -- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
 end
 
 function backup()
