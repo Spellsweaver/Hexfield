@@ -10,6 +10,7 @@ local states = require("states")
 local fileHelper = require("fileHelper")
 local geometry = require("hexagonalGeometryHelper")
 local deepcopy = require("deepcopy")
+require("fonts")
 
 function fieldReset()
 	lastsavename=""
@@ -69,8 +70,6 @@ function love.load()
 	love.window.maximize()
 	width,height = love.graphics.getDimensions()
 	love.window.setTitle ("Hexagonal field")
-	smallfont=love.graphics.newFont("openSans.ttf",16)
-	largefont=love.graphics.newFont("openSans.ttf",24)
 	panel=300
 	center={math.floor((width-panel)/2),math.floor(height/2)}
 	view={scale=1,x=0,y=0}
