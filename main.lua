@@ -5,185 +5,182 @@
 ----------------------------
 --1.3.5
 ----------------------------
-local json = require("JSON")
 local utf8 = require("utf8")
+local states = require("states")
+local fileHelper = require("fileHelper")
 
-function field_reset()
+function fieldReset()
 	lastsavename=""
 	love.window.setTitle("Hexfield")
-    for i=-hexsize,hexsize do
-    	hexfield[i]={}
-    	for j=-hexsize,hexsize do
-    		hexfield[i][j]=
-    		{
-    			color={0,0,0,0},
-    			texture=1,
-    			object=
-    				{
-    					type=0,
-    					rotation=0
-    				},
-    			unit=
-    				{
-    					type=0,
-    					hp=100,
-    					maxhp=100,
-    					r=1,
-    					g=1,
-    					b=1,
-    					bufflist={},
-    					text='',
-    				}
-    		}
-    	end
-    end
+		for i=-hexsize,hexsize do
+			hexfield[i]={}
+			for j=-hexsize,hexsize do
+				hexfield[i][j]=
+				{
+					color={0,0,0,0},
+					texture=1,
+					object=
+						{
+							type=0,
+							rotation=0
+						},
+					unit=
+						{
+							type=0,
+							hp=100,
+							maxhp=100,
+							r=1,
+							g=1,
+							b=1,
+							bufflist={},
+							text='',
+						}
+				}
+			end
+		end
 end
 
 function autosave()
-	local filetoopen=love.filesystem.newFile("maps/autosave.hxm")
-	filetoopen:open("w")
-	local jsonmap=json:encode(hexfield)
-	filetoopen:write(jsonmap)
-	filetoopen:close()
-
-	filetoopen=love.filesystem.newFile("options.json")
-	filetoopen:open("w")
-	local jsonoptions=json:encode(options)
-	filetoopen:write(jsonoptions)
-	filetoopen:close()
+	fileHelper.saveTable("maps/autosave.hxm", hexfield)
+	fileHelper.saveTable("options.json", options)
 	return false
 end
 
-function backup()
-	local function deepcopy(orig)
-	    local orig_type = type(orig)
-	    local copy
-	    if orig_type == 'table' then
-	        copy = {}
-	        for orig_key, orig_value in next, orig, nil do
-	            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-	        end
-	        setmetatable(copy, deepcopy(getmetatable(orig)))
-	    else -- number, string, boolean, etc
-	        copy = orig
-	    end
-    	return copy
+local function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+				copy[deepcopy(orig_key)] = deepcopy(orig_value)
+		end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
 	end
+	return copy
+end
 
+function backup()
 	hexfield_backup=deepcopy(hexfield)
 end
 
 function restore()
 	if hexfield_backup then
-		tmp=hexfield
+		local tmp=hexfield
 		hexfield=hexfield_backup
 		hexfield_backup=tmp
 	end
 end
 
 function love.load()
+	states.setup()
 	offset=0
 	local _, _, flags = love.window.getMode()
-    width, height = love.window.getDesktopDimensions(flags.display)
-    love.window.setMode (width,height,{fullscreen=false,vsync=true,resizable=true,borderless=false,centered=true})
-    love.window.maximize()
-    width,height = love.graphics.getDimensions()
-    love.window.setTitle ("Hexagonal field")
-    smallfont=love.graphics.newFont("openSans.ttf",16)
-    largefont=love.graphics.newFont("openSans.ttf",24)
-    panel=300
-    center={math.floor((width-panel)/2),math.floor(height/2)}
-    view={scale=1,x=0,y=0}
-    camdrag=false
-    glow=false
-    hexres=64 --hexagon's side
-    --images for tiles should be 2*hexres wide and hexres*sqrt(3) high to be displayed properly
-    hexsize=50 --this means that we'll have a field of [-hexsize..hexsize] x [-hexsize..hexsize]
-    hexfield={}
-    --x is to the right and up, y is to the left and up
-    field_reset()
-    screen_mode='main'
-    click_mode=nil
-    texture={}
-    local i=1
-    while love.filesystem.getInfo("textures/"..i..".png") do
-    			texture[i]=love.graphics.newImage("textures/"..i..".png")		
-    			i=i+1
-    end
-
-    i=1
-    object_graph={}
-   	while love.filesystem.getInfo("objects/"..i..".png") do
-    			object_graph[i]=love.graphics.newImage("objects/"..i..".png")		
-    			i=i+1
-    end
-
-    button_rotate=love.graphics.newImage("buttons/rotate.png")
-    button_hp=love.graphics.newImage("buttons/heart.png")
-    button_hand=love.graphics.newImage("buttons/hand.png")
-    button_delete=love.graphics.newImage("buttons/delete.png")
-    button_paint=love.graphics.newImage("buttons/paint.png")
-    button_save=love.graphics.newImage("buttons/save.png")
-    button_load=love.graphics.newImage("buttons/load.png")
-    button_options=love.graphics.newImage("buttons/options.png")
-
-    i=1
-    unit_graph={}
-    while love.filesystem.getInfo("units/"..i..".png") do
-    			unit_graph[i]=love.graphics.newImage("units/"..i..".png")		
-    			i=i+1
-    end
-
-    i=1
-    buff_graph={}
-    while love.filesystem.getInfo("buffs/"..i..".png") do
-    			buff_graph[i]=love.graphics.newImage("buffs/"..i..".png")		
-    			i=i+1
-    end
-
-    map_savefile={}
-
-    love.filesystem.createDirectory("maps")
-    lastsavename=""
-
-    options = {
-    	{name = "Show HP bars", values = {true,"always",false}, currentValue = 1},
-    	{name = "Show HP numbers", values = {true,"always",false}, currentValue = 1},
-    	{name = "HP numbers mode", values = {"none", "current hp only", "current and max hp"}, currentValue = 1},
-    	{name = "HP setting", values = {"integer values", "real values", "percentage"}, currentValue = 1}
-	}
-
-	if love.filesystem.getInfo("options.json") then
-		local filetoopen=love.filesystem.newFile("options.json")
-		filetoopen:open("r")
-		local jsonoptions=filetoopen:read()
-		options=json:decode(jsonoptions)
-		filetoopen:close()
+	width, height = love.window.getDesktopDimensions(flags.display)
+	love.window.setMode (width,height,{fullscreen=false,vsync=true,resizable=true,borderless=false,centered=true})
+	love.window.maximize()
+	width,height = love.graphics.getDimensions()
+	love.window.setTitle ("Hexagonal field")
+	smallfont=love.graphics.newFont("openSans.ttf",16)
+	largefont=love.graphics.newFont("openSans.ttf",24)
+	panel=300
+	center={math.floor((width-panel)/2),math.floor(height/2)}
+	view={scale=1,x=0,y=0}
+	camdrag=false
+	glow=false
+	hexres=64 --hexagon's side
+	--images for tiles should be 2*hexres wide and hexres*sqrt(3) high to be displayed properly
+	hexsize=50 --this means that we'll have a field of [-hexsize..hexsize] x [-hexsize..hexsize]
+	hexfield={}
+	--x is to the right and up, y is to the left and up
+	fieldReset()
+	screen_mode='main'
+	click_mode=nil
+	texture={}
+	local i=1
+	while love.filesystem.getInfo("textures/"..i..".png") do
+				texture[i]=love.graphics.newImage("textures/"..i..".png")		
+				i=i+1
 	end
 
-    function optionValue(optionName)
-    	for k,v in pairs(options) do
-    		if v.name == optionName then
-    			return v.values[v.currentValue]
-    		end
-   		end
-    end
+	i=1
+	object_graph={}
+	while love.filesystem.getInfo("objects/"..i..".png") do
+				object_graph[i]=love.graphics.newImage("objects/"..i..".png")		
+				i=i+1
+	end
 
-   	drawr,drawg,drawb=1,1,1;
-   	drawalpha=0.5;
-   	texture_chosen=1;
+	button_rotate=love.graphics.newImage("buttons/rotate.png")
+	button_hp=love.graphics.newImage("buttons/heart.png")
+	button_hand=love.graphics.newImage("buttons/hand.png")
+	button_delete=love.graphics.newImage("buttons/delete.png")
+	button_paint=love.graphics.newImage("buttons/paint.png")
+	button_save=love.graphics.newImage("buttons/save.png")
+	button_load=love.graphics.newImage("buttons/load.png")
+	button_options=love.graphics.newImage("buttons/options.png")
 
-   	textures_fit_x=math.floor(width/hexres/2)
-   	textures_fit_y=math.floor(height/hexres/2)
+	i=1
+	unit_graph={}
+	while love.filesystem.getInfo("units/"..i..".png") do
+				unit_graph[i]=love.graphics.newImage("units/"..i..".png")		
+				i=i+1
+	end
 
-   	object_chosen=1
-   	object_rot=0
+	i=1
+	buff_graph={}
+	while love.filesystem.getInfo("buffs/"..i..".png") do
+				buff_graph[i]=love.graphics.newImage("buffs/"..i..".png")		
+				i=i+1
+	end
 
-   	unit_chosen=1
+	map_savefile={}
 
-   	flashPeriod = 0.5
-   	flashTimeElapsed = 0
-   	flashingSymbol = true
+	love.filesystem.createDirectory("maps")
+	lastsavename=""
+
+	local defaultOptions =
+	{
+		{name = "Show HP bars", values = {true,"always",false}, currentValue = 1},
+		{name = "Show HP numbers", values = {true,"always",false}, currentValue = 1},
+		{name = "HP numbers mode", values = {"none", "current hp only", "current and max hp"}, currentValue = 1},
+		{name = "HP setting", values = {"integer values", "real values", "percentage"}, currentValue = 1}
+	}
+
+	options = fileHelper.loadTable("options.json") or {}
+
+	--creating backwards compatibility in case of added options or option values
+	for k,v in pairs(defaultOptions) do
+		if not options[k] then
+			options[k] = deepcopy(v)
+		else
+			options[k].values = deepcopy(v.values)
+		end
+	end
+
+	function optionValue(optionName)
+		for k,v in pairs(options) do
+			if v.name == optionName then
+				return v.values[v.currentValue]
+			end
+		end
+	end
+
+	drawr,drawg,drawb=1,1,1;
+	drawalpha=0.5;
+	texture_chosen=1;
+
+	textures_fit_x=math.floor(width/hexres/2)
+	textures_fit_y=math.floor(height/hexres/2)
+
+	object_chosen=1
+	object_rot=0
+
+	unit_chosen=1
+
+	flashPeriod = 0.5
+	flashTimeElapsed = 0
+	flashingSymbol = true
 end
 
 function hex(x,y,mode)
@@ -191,7 +188,7 @@ function hex(x,y,mode)
 	local mode = mode or 'line'
 
 	local vertices={x+hexres*0.5, y+hexres*math.sqrt(3)/2, x+hexres, y, x+hexres*0.5,
-	 y-hexres*math.sqrt(3)/2, x-hexres*0.5, y-hexres*math.sqrt(3)/2, x-hexres, y, x-hexres*0.5, y+hexres*math.sqrt(3)/2}
+	y-hexres*math.sqrt(3)/2, x-hexres*0.5, y-hexres*math.sqrt(3)/2, x-hexres, y, x-hexres*0.5, y+hexres*math.sqrt(3)/2}
 	
 
 	for i=1,6 do
@@ -251,38 +248,34 @@ function draw_object(index,rot,x,y,zoom)
 end
 
 function love.keypressed(key,scancode)
-   	if key == "escape" then
-   		if screen_mode == 'main' then
-      		love.event.quit()
-      	else 
-      		screen_mode = 'main'
-      	end
-  	elseif key == "backspace" then
-  		if screen_mode=='save' then
-        -- get the byte offset to the last UTF-8 character in the string.
-	        local byteoffset = utf8.offset(filetointeract, -1)
-	 
-	        if byteoffset then
-	            -- remove the last UTF-8 character.
-	            -- string.sub operates on bytes rather than UTF-8 characters, so we couldn't do string.sub(text, 1, -2).
-	            filetointeract = string.sub(filetointeract, 1, byteoffset - 1)
+	if key == "escape" then
+		if screen_mode == 'main' then
+				love.event.quit()
+			else 
+				screen_mode = 'main'
+			end
+	elseif key == "backspace" then
+		if screen_mode=='save' then
+			-- get the byte offset to the last UTF-8 character in the string.
+			local byteoffset = utf8.offset(filetointeract, -1)
+
+			if byteoffset then
+					-- remove the last UTF-8 character.
+					-- string.sub operates on bytes rather than UTF-8 characters, so we couldn't do string.sub(text, 1, -2).
+					filetointeract = string.sub(filetointeract, 1, byteoffset - 1)
 			end
 		elseif screen_mode=='maxhpset' then
 			local byteoffset = utf8.offset(maxhpnumber, -1)
 	 
-	        if byteoffset then
-	            -- remove the last UTF-8 character.
-	            -- string.sub operates on bytes rather than UTF-8 characters, so we couldn't do string.sub(text, 1, -2).
-	            maxhpnumber = string.sub(maxhpnumber, 1, byteoffset - 1)
+			if byteoffset then
+					-- remove the last UTF-8 character.
+					-- string.sub operates on bytes rather than UTF-8 characters, so we couldn't do string.sub(text, 1, -2).
+					maxhpnumber = string.sub(maxhpnumber, 1, byteoffset - 1)
 			end
 		end
 	elseif (key == "return" or key == "kpenter") and screen_mode=='save' and filetointeract~="" then
-		local filetoopen=love.filesystem.newFile("maps/"..filetointeract..".hxm")
+		fileHelper.saveTable("maps/"..filetointeract..".hxm",hexfield)
 		lastsavename=filetointeract..".hxm"
-		filetoopen:open("w")
-		local jsonmap=json:encode(hexfield)
-		filetoopen:write(jsonmap)
-		filetoopen:close()
 		screen_mode='main'
 	elseif key == "up" and (screen_mode=='texture' or screen_mode=='object' or screen_mode=='unit' or screen_mode=='saveload') then
 		offset=math.max(0,offset-1)
@@ -323,16 +316,16 @@ function love.keypressed(key,scancode)
 	elseif screen_mode=='main' and --Ctrl + Shift + O
 	scancode == "o" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) then
- 		love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/maps")
+		love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/maps")
 	elseif screen_mode=='main' and --Ctrl + N
 	scancode == "n" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
 		autosave()
-		field_reset()
+		fieldReset()
 		backup()
 	elseif screen_mode=='main' and --Ctrl + Z
 	scancode == "z" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
 		restore()
-    end
+		end
 end
 
 function love.draw()
@@ -868,17 +861,17 @@ function love.mousepressed( x, y, button )
 		elseif x>width-panel+100 and x<width-panel+200 and y>160 and y<180 and button==1 then
 			backup()
 			for i=-hexsize,hexsize do
-    				for j=-hexsize,hexsize do
-    					hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
-    				end
-    		end
-    	elseif x>width-panel+20 and x<width-panel+120 and y>320 and y<340 then
-    		backup()
-    		for i=-hexsize,hexsize do
-    				for j=-hexsize,hexsize do
-    					hexfield[i][j].texture=texture_chosen
-    				end
-    		end
+						for j=-hexsize,hexsize do
+							hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
+						end
+				end
+			elseif x>width-panel+20 and x<width-panel+120 and y>320 and y<340 then
+				backup()
+				for i=-hexsize,hexsize do
+						for j=-hexsize,hexsize do
+							hexfield[i][j].texture=texture_chosen
+						end
+				end
 		end
 	elseif screen_mode=='palette' and button==1 then
 		if x>=100 and x<=355 then
@@ -896,10 +889,10 @@ function love.mousepressed( x, y, button )
 			elseif y>650 and y<750 then
 				screen_mode='main'
 				for i=-hexsize,hexsize do
-    				for j=-hexsize,hexsize do
-    					hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
-    				end
-    			end
+						for j=-hexsize,hexsize do
+							hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
+						end
+					end
 			end
 		end --color settings
 	elseif screen_mode=='texture' and button==1 and love.mouse.getX()<2*hexres*textures_fit_x and love.mouse.getY()<math.sqrt(3)*hexres*textures_fit_y then
@@ -970,44 +963,20 @@ function love.mousepressed( x, y, button )
 		end
 
 	elseif screen_mode=='overwrite' and button==1 and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		local filetoopen=love.filesystem.newFile("maps/"..filetointeract)
-		filetoopen:open("w")
+		fileHelper.saveTable("maps/"..filetointeract,hexfield)
 		lastsavename=filetointeract
-		love.window.setTitle(lastsavename.." - Hexfield")
-		local jsonmap=json:encode(hexfield)
-		filetoopen:write(jsonmap)
-		filetoopen:close()
 		screen_mode='main'
-
 	elseif screen_mode=='save' and button==1 and filetointeract~="" and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		local filetoopen=love.filesystem.newFile("maps/"..filetointeract..".hxm")
-		filetoopen:open("w")
+		fileHelper.saveTable("maps/"..filetointeract,hexfield)
 		lastsavename=filetointeract..".hxm"
-		love.window.setTitle(lastsavename.." - Hexfield")
-		local jsonmap=json:encode(hexfield)
-		filetoopen:write(jsonmap)
-		filetoopen:close()
 		screen_mode='main'
-
 	elseif screen_mode=='load' and button==1 and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		local filetoopen=love.filesystem.newFile("maps/"..filetointeract)
-		filetoopen:open("r")
-		local jsonmap=filetoopen:read()
 		backup()
 		lastsavename=filetointeract
 		love.window.setTitle(lastsavename.." - Hexfield")
-		hexfield=json:decode(jsonmap)
-		for i=-hexsize,hexsize do
-			hexfield[i]={}
-				for j=-hexsize,hexsize do
-			    	hexfield[i][j]=hexfield[""..i][""..j]
-			    end
-			hexfield[""..i]=nil
-		end
-		filetoopen:close()
-		if not hexfield[1][1] then field_reset() end
+		hexfield = fileHelper.loadTableWithNegativeIndices("maps/"..filetointeract)
+		if not hexfield[1][1] then fieldReset() end
 		screen_mode='main'
-
 	elseif (screen_mode=='overwrite' or screen_mode=='save' or screen_mode=='load') and button==1 and y<height/2+150 and y>height/2+100 and x>2*width/3-75 and x<2*width/3+75 then
 		screen_mode='main'
 
@@ -1096,10 +1065,10 @@ function love.mousemoved(x, y, dx, dy)
 			elseif y>650 and y<750 then
 				screen_mode='main'
 				for i=-hexsize,hexsize do
-    				for j=-hexsize,hexsize do
-    					hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
-    				end
-    			end
+						for j=-hexsize,hexsize do
+							hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
+						end
+					end
 			end
 		end --color settings
 	elseif screen_mode=='properties' and y<height/2+10 and y>height/2-10 and love.mouse.isDown(1) then
@@ -1117,18 +1086,18 @@ end
 
 function love.textinput(t)
 	if screen_mode=='save' then
-    	filetointeract = filetointeract .. t
-    elseif screen_mode=='maxhpset' then
-    	if tonumber(t) then
-    		maxhpnumber = maxhpnumber .. t
-    	end
-    end
+			filetointeract = filetointeract .. t
+		elseif screen_mode=='maxhpset' then
+			if tonumber(t) then
+				maxhpnumber = maxhpnumber .. t
+			end
+		end
 end
 
 function love.resize()
 	width,height=love.graphics.getDimensions()
-   textures_fit_x=math.floor(width/hexres/2)
-   textures_fit_y=math.floor(height/hexres/2)
+	 textures_fit_x=math.floor(width/hexres/2)
+	 textures_fit_y=math.floor(height/hexres/2)
 end
 
 function love.quit()

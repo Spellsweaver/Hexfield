@@ -1,4 +1,4 @@
---States.lua
+--states.lua
 --By S. Baranov (spellsweaver@gmail.com)
 --
 -------------
@@ -13,8 +13,16 @@
 --newState is the name of the state file, params will be caught by newState.open callback
 --All of the love2d callbacks are supposed to be moved to state files,
 --EXCEPT: love.load, love.quit, love.resize that remain in mail.lua
+--if love2d callback in main.lua is not blank then it will replace the callback provided by states
+--if you want to use both state callbacks and state-independant callback in main, use it like this
+--function love.update(dt)
+--	--your code goes here
+--	states.update(dt)
+--end
 
 --------------
+
+local states = {}
 
 --private variables
 local stateFiles = {}
@@ -53,9 +61,11 @@ end
 --public functions
 function states.setup()
 	for _,callback in pairs(love2dCallbacksList) do
-		love[callback] = function(p1,p2,p3,p4)
+		states[callback] = 		
+		function(p1,p2,p3,p4)
 			stateFiles[currentState][callback](p1,p2,p3,p4)
 		end
+		love[callback] = love[callback] or states[callback]
 	end
 end
 
