@@ -39,3 +39,7 @@ Ctrl + Shift + O - opens the directory containing saved maps in your file browse
 Ctrl + Z - cancels the last change to map.
 
 You can distribute this application freely as long as you give credit to creator.
+
+#States library
+Since the last update, this project also contains a completely independant states library for love2d.
+You can use and/or modify it freely.
