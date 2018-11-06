@@ -5,20 +5,17 @@
 -------------
 --How to use
 -------------
---local states = require("states")
---run states.setup in love.load
---for each of your states, create a file that returns a table of functions
---functions correspond to regular love2d callback
---".open" function is run whenever you switch to a state
---to switch states, use states.switch(newState,params)
---newState is the name of the state file, params will be caught by newState.open callback
---State library redirects love2d callbacks to according functions within state files
---If you want to have state-independant callbacks, put them in your main.lua file, they will override the state callbacks
---if you want to use both state callbacks and state-independant callback in main, use it like this
---function love.update(dt)
---	--your code goes here
---	states.update(dt)
---end
+--In main.lua
+--states = require("states")
+--in love.load() call states.setup()
+--From now on, states library will redirect love2d callbacks from your main.lua to state files
+--Each state file should be located in "states/" directory and return a table of callbacks that correspond to love2d callbacks
+--If you want your callbacks to be state-independant, keep them in your main.lua. This way states library will not redirect them to states.
+--If you want a callback to have both state-dependant and state-independant part, 
+--keep in in main.lua and call states.(callback name) within love 2d callback
+--To switch states (you should probably do this immediately after initialising) use states.switch(filename,params)
+--Filename is a name of your state file, while params is a table that will be caught by .open callback within according state file
+--Through params you can transfer data to your state files conveniently
 
 --------------
 
@@ -30,7 +27,7 @@ local stateFiles = {}
 local currentState = "default"
 
 local love2dCallbacksList =
-	--except load
+	--except load and errorhandler
 	{
 		"keypressed",
 		"keyreleased",
@@ -63,7 +60,7 @@ local function defaultInitialize(stateFile)
 end
 
 local function add(stateName)
-	stateFiles[stateName] = require(stateName)
+	stateFiles[stateName] = require("states/"..stateName)
 	defaultInitialize(stateFiles[stateName])
 end
 
@@ -71,8 +68,8 @@ end
 function states.setup()
 	for _,callback in pairs(love2dCallbacksList) do
 		states[callback] = 		
-		function(p1,p2,p3,p4)
-			stateFiles[currentState][callback](p1,p2,p3,p4)
+		function(...)
+			stateFiles[currentState][callback](unpack({...}))
 		end
 		love[callback] = love[callback] or states[callback]
 	end
