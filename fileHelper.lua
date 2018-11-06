@@ -35,7 +35,7 @@ function fileHelper.loadTableWithNegativeIndices(filepath)
 --as json doesn't support negative and/or non-integer indices
 --and I made a choice of using them for my coordinates
 --I have to make a special method of conversion
---this function converts indices of numbers in form of string, like "1" into actual numberical indices
+--this function converts indices of numbers in form of string, like "1" into actual numerical indices
 	local rawTable = fileHelper.loadTable(filepath)
 	local refinedTable = {}
 	for k,v in pairs(rawTable) do

@@ -1,6 +1,7 @@
 --states.lua
---By S. Baranov (spellsweaver@gmail.com)
 --
+--By S. Baranov (spellsweaver@gmail.com)
+--For love2d 11.1
 -------------
 --How to use
 -------------
@@ -11,9 +12,8 @@
 --".open" function is run whenever you switch to a state
 --to switch states, use states.switch(newState,params)
 --newState is the name of the state file, params will be caught by newState.open callback
---All of the love2d callbacks are supposed to be moved to state files,
---EXCEPT: love.load, love.quit, love.resize that remain in mail.lua
---if love2d callback in main.lua is not blank then it will replace the callback provided by states
+--State library redirects love2d callbacks to according functions within state files
+--If you want to have state-independant callbacks, put them in your main.lua file, they will override the state callbacks
 --if you want to use both state callbacks and state-independant callback in main, use it like this
 --function love.update(dt)
 --	--your code goes here
@@ -30,17 +30,26 @@ local stateFiles = {}
 local currentState = "default"
 
 local love2dCallbacksList =
-	--only callbacks for which the state matters
-	--no resize, quit, etc
-	--no load here too
+	--except load
 	{
 		"keypressed",
+		"keyreleased",
+		"filedropped",
+		"directorydropped",
 		"draw",
 		"update",
 		"wheelmoved",
 		"mousepressed",
+		"mousemoved",
 		"mousereleased",
-		"textinput"
+		"textinput",
+		"focus",
+		"lowmemory",
+		"mousefocus",
+		"resize",
+		"quit",
+		"threaderror",
+		"visible"
 	}
 
 --private functions
@@ -70,13 +79,13 @@ function states.setup()
 end
 
 function states.switch(newState,params)
-	if stateFile[newState] then
-		currentState = newState
-		stateFile[newState].open(params)
-	else
+	if not stateFiles[newState] then
 		add(newState)
 	end
 
+	currentState = newState
+	local params = type(params)=="table" and params or {}
+	stateFiles[newState].open(params)
 end
 
 return states

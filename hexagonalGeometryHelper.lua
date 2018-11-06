@@ -1,6 +1,9 @@
 local geometry = {}
 
+geometry.panel = 300
 geometry.hexres = 64
+geometry.view = {scale=1,x=0,y=0}
+geometry.center={math.floor((width-geometry.panel)/2),math.floor(height/2)}
 
 function geometry.setSize(newSize)
 	geometry.hexres = newSize
@@ -16,17 +19,17 @@ function geometry.hex(x,y,mode)
 	
 
 	for i=1,6 do
-		vertices[2*i]=vertices[2*i]-view.y
-		vertices[2*i-1]=vertices[2*i-1]-view.x
+		vertices[2*i]=vertices[2*i]-geometry.view.y
+		vertices[2*i-1]=vertices[2*i-1]-geometry.view.x
 	end
 
 	for i=1,12 do
-		vertices[i]=vertices[i]*view.scale
+		vertices[i]=vertices[i]*geometry.view.scale
 	end
 
 	for i=1,6 do
-		vertices[2*i]=vertices[2*i]+center[2]
-		vertices[2*i-1]=vertices[2*i-1]+center[1]
+		vertices[2*i]=vertices[2*i]+geometry.center[2]
+		vertices[2*i-1]=vertices[2*i-1]+geometry.center[1]
 	end
 
 	love.graphics.polygon(mode, vertices)
