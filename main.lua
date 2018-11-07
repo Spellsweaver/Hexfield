@@ -13,11 +13,11 @@ require("fonts")
 --Functions
 local deepcopy = require("deepcopy")
 local button = require("button")
-
 --Models
 local hexfieldModel = require("models/hexfieldModel")
 local optionsModel = require("models/optionsModel")
 local graphicsModel = require("models/graphicsModel")
+local window = require("windowHelper")
 
 function autosave()
 	hexfieldModel.save("autosave.hxm")
@@ -27,23 +27,18 @@ end
 
 function love.load()
 	states.setup()
-	local _, _, flags = love.window.getMode()
-	width, height = love.window.getDesktopDimensions(flags.display)
-	love.window.setMode (width,height,{fullscreen=false,vsync=true,resizable=true,borderless=false,centered=true})
-	love.window.maximize()
-	width,height = love.graphics.getDimensions()
+	window.initialize()
 	geometry.recountDimensions()
 	love.window.setTitle ("Hexagonal field")
 	hexfieldModel.reset()
 	love.filesystem.createDirectory("maps")
-
 	graphicsModel.preload()
 	optionsModel.initialize()
-	states.switch("map",{reset=true})
+	states.switch("map")
 end
 
 function love.resize()
-	width,height=love.graphics.getDimensions()
+	window.update()
 	geometry.recountDimensions()
 end
 

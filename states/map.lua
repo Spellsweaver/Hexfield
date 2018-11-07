@@ -59,9 +59,6 @@ function map.open(params)
 	drawb=params.drawb or drawb
 	drawalpha=params.drawalpha or drawalpha
 
-	if params.reset then
-		hexfieldModel.reset()
-	end
 	if params.colorall then
 		hexfieldModel.colorAll(drawr,drawg,drawb,drawalpha)
 	end
