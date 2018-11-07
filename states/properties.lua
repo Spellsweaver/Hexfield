@@ -1,5 +1,7 @@
 local states = require("states")
 local button = require("button")
+--models
+local optionsModel = require("models/optionsModel")
 
 local properties = {}
 
@@ -18,11 +20,11 @@ function properties.draw()
 
 	button({x=width/2-75,y=height/2+100,width=150,height=50,lineWidth=3,text='OK'})
 	local hpString
-	if optionValue("HP setting")=="percentage" then
+	if optionsModel.value("HP setting")=="percentage" then
 		hpString=string.format("%.1f",(100*target.hp/target.maxhp)).."%"
-	elseif optionValue("HP setting")=="integer values" then
+	elseif optionsModel.value("HP setting")=="integer values" then
 		hpString=string.format("%d",target.hp)
-	elseif optionValue("HP setting")=="real values" then
+	elseif optionsModel.value("HP setting")=="real values" then
 		hpString=string.format("%.1f",target.hp)
 	end
 	love.graphics.print(hpString,width/2-15,height/2+20);
@@ -52,7 +54,7 @@ function properties.mousepressed(x,y,button)
 			target.hp=0
 		elseif x<width*2/3 then
 			target.hp=
-			(optionValue("HP setting")=="integer values" and math.ceil((x-width/3)/(width/3)*target.maxhp)) or (x-width/3)/(width/3)*target.maxhp
+			(optionsModel.value("HP setting")=="integer values" and math.ceil((x-width/3)/(width/3)*target.maxhp)) or (x-width/3)/(width/3)*target.maxhp
 		else
 			target.hp=target.maxhp
 		end
@@ -75,7 +77,7 @@ function properties.mousemoved(x, y, dx, dy)
 			target.hp=0
 		elseif x<width*2/3 then
 			target.hp=
-			(optionValue("HP setting")=="integer values" and math.ceil((x-width/3)/(width/3)*target.maxhp)) or (x-width/3)/(width/3)*target.maxhp
+			(optionsModel.value("HP setting")=="integer values" and math.ceil((x-width/3)/(width/3)*target.maxhp)) or (x-width/3)/(width/3)*target.maxhp
 		else
 			target.hp=target.maxhp
 		end

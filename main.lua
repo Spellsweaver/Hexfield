@@ -8,8 +8,6 @@
 --Libraries
 local utf8 = require("utf8")
 local states = require("states")
-local fileHelper = require("fileHelper")
-
 require("fonts")
 --Functions
 local deepcopy = require("deepcopy")
@@ -17,10 +15,11 @@ local button = require("button")
 
 --Models
 local hexfieldModel = require("models/hexfieldModel")
+local optionsModel= require("models/optionsModel")
 
 function autosave()
-	hexfieldModel.save("maps/autosave.hxm")
-	fileHelper.saveTable("options.json", options)
+	hexfieldModel.save("autosave.hxm")
+	optionsModel.save()
 	return false
 end
 
@@ -62,37 +61,9 @@ function love.load()
 				buff_graph[i]=love.graphics.newImage("buffs/"..i..".png")		
 				i=i+1
 	end
-
-	map_savefile={}
 	love.filesystem.createDirectory("maps")
 
-	local defaultOptions =
-	{
-		{name = "Show HP bars", values = {true,"always",false}, currentValue = 1},
-		{name = "Show HP numbers", values = {true,"always",false}, currentValue = 1},
-		{name = "HP numbers mode", values = {"none", "current hp only", "current and max hp"}, currentValue = 1},
-		{name = "HP setting", values = {"integer values", "real values", "percentage"}, currentValue = 1}
-	}
-
-	options = fileHelper.loadTable("options.json") or {}
-
-	--creating backwards compatibility in case of added options or option values
-	for k,v in pairs(defaultOptions) do
-		if not options[k] then
-			options[k] = deepcopy(v)
-		else
-			options[k].values = deepcopy(v.values)
-		end
-	end
-
-	function optionValue(optionName)
-		for k,v in pairs(options) do
-			if v.name == optionName then
-				return v.values[v.currentValue]
-			end
-		end
-	end
-
+	optionsModel.initialize()
 	states.switch("map",{reset=true})
 end
 

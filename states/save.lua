@@ -1,7 +1,6 @@
 local states = require("states")
 local utf8 = require("utf8")
 local button = require("button")
-local fileHelper = require("fileHelper")
 local hexfieldModel = require("models/hexfieldModel")
 
 local save = {}

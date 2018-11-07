@@ -2,7 +2,9 @@ local geometry = require("hexagonalGeometryHelper")
 local button = require("button")
 local states = require("states")
 local deepcopy = require("deepcopy")
+--models
 local hexfieldModel = require("models/hexfieldModel")
+local optionsModel = require("models/optionsModel")
 
 local map = {}
 ------
@@ -131,7 +133,7 @@ function map.draw()
 				love.graphics.setColor(hexfieldModel.hexfield[i][j].unit.r,hexfieldModel.hexfield[i][j].unit.g,hexfieldModel.hexfield[i][j].unit.b)
 				love.graphics.draw(unit_graph[hexfieldModel.hexfield[i][j].unit.type],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 				love.graphics.setLineWidth(5)
-				if optionValue("Show HP bars")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP bars")) then
+				if optionsModel.value("Show HP bars")=="always" or (xglow==i and yglow==j and glow and optionsModel.value("Show HP bars")) then
 					local hpPercentage = hexfieldModel.hexfield[i][j].unit.hp/hexfieldModel.hexfield[i][j].unit.maxhp
 					love.graphics.setColor(1,0,0)
 					love.graphics.line( ((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64+geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2])
@@ -139,8 +141,8 @@ function map.draw()
 					love.graphics.line( ((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64+hpPercentage*geometry.hexres-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2])
 				end
 
-				if optionValue("HP numbers mode")~="none" and (optionValue("Show HP numbers")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP numbers"))) then
-					local hpText = string.format("%d",hexfieldModel.hexfield[i][j].unit.hp)..(optionValue("HP numbers mode")=="current and max hp" and string.format("/%d",hexfieldModel.hexfield[i][j].unit.maxhp) or "")
+				if optionsModel.value("HP numbers mode")~="none" and (optionsModel.value("Show HP numbers")=="always" or (xglow==i and yglow==j and glow and optionsModel.value("Show HP numbers"))) then
+					local hpText = string.format("%d",hexfieldModel.hexfield[i][j].unit.hp)..(optionsModel.value("HP numbers mode")=="current and max hp" and string.format("/%d",hexfieldModel.hexfield[i][j].unit.maxhp) or "")
 					love.graphics.setColor(0,0,0,0.5)
 					love.graphics.rectangle("fill",((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+60-view.y-geometry.hexres*2/3)*view.scale+center[2],geometry.hexres*view.scale,18*view.scale,6*view.scale,6*view.scale)
 					love.graphics.setColor(1,1,1)
