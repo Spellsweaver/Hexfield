@@ -3,10 +3,17 @@ local geometry = {}
 
 geometry.panel = 300
 geometry.hexres = 64
-geometry.center={math.floor((width-geometry.panel)/2),math.floor(height/2)}
+geometry.center = {}
 
 function geometry.setSize(newSize)
 	geometry.hexres = newSize
+end
+
+function geometry.recountDimensions()
+	geometry.itemsFitX=math.floor(width/geometry.hexres/2)
+	geometry.itemsFitY=math.floor(height/geometry.hexres/2)
+	geometry.center[1]=math.floor((width-geometry.panel)/2)
+	geometry.center[2]=math.floor(height/2)
 end
 
 function geometry.hex(x,y,mode)

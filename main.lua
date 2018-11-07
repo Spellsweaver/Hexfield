@@ -8,6 +8,7 @@
 --Libraries
 local utf8 = require("utf8")
 local states = require("states")
+local geometry = require("hexagonalGeometryHelper")
 require("fonts")
 --Functions
 local deepcopy = require("deepcopy")
@@ -31,6 +32,7 @@ function love.load()
 	love.window.setMode (width,height,{fullscreen=false,vsync=true,resizable=true,borderless=false,centered=true})
 	love.window.maximize()
 	width,height = love.graphics.getDimensions()
+	geometry.recountDimensions()
 	love.window.setTitle ("Hexagonal field")
 	hexfieldModel.reset()
 	love.filesystem.createDirectory("maps")
@@ -42,7 +44,7 @@ end
 
 function love.resize()
 	width,height=love.graphics.getDimensions()
-	states.resize()
+	geometry.recountDimensions()
 end
 
 function love.quit()
