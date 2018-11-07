@@ -6,6 +6,7 @@ local deepcopy = require("deepcopy")
 local hexfieldModel = require("models/hexfieldModel")
 local optionsModel = require("models/optionsModel")
 local graphicsModel = require("models/graphicsModel")
+local view = require("models/cameraModel")
 
 local map = {}
 ------
@@ -16,7 +17,6 @@ local unitdrag, objectdrag = false, false --indicates whether a unit/object is b
 local glow = false --indicates whether cursor is over a field and glow should be drawn
 
 local panel = geometry.panel
-local view = geometry.view
 local center = geometry.center
 
 local drawr,drawg,drawb=1,1,1

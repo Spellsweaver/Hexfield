@@ -1,8 +1,8 @@
+local view = require("models/cameraModel")
 local geometry = {}
 
 geometry.panel = 300
 geometry.hexres = 64
-geometry.view = {scale=1,x=0,y=0}
 geometry.center={math.floor((width-geometry.panel)/2),math.floor(height/2)}
 
 function geometry.setSize(newSize)
@@ -19,12 +19,12 @@ function geometry.hex(x,y,mode)
 	
 
 	for i=1,6 do
-		vertices[2*i]=vertices[2*i]-geometry.view.y
-		vertices[2*i-1]=vertices[2*i-1]-geometry.view.x
+		vertices[2*i]=vertices[2*i]-view.y
+		vertices[2*i-1]=vertices[2*i-1]-view.x
 	end
 
 	for i=1,12 do
-		vertices[i]=vertices[i]*geometry.view.scale
+		vertices[i]=vertices[i]*view.scale
 	end
 
 	for i=1,6 do
