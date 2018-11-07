@@ -5,6 +5,7 @@ local deepcopy = require("deepcopy")
 --models
 local hexfieldModel = require("models/hexfieldModel")
 local optionsModel = require("models/optionsModel")
+local graphicsModel = require("models/graphicsModel")
 
 local map = {}
 ------
@@ -45,7 +46,7 @@ local function mousepos()
 end
 
 local function drawObject(index,rot,x,y,zoom)
-	love.graphics.draw(object_graph[index],x,y,math.rad(rot*60),zoom,zoom,geometry.hexres,geometry.hexres*math.sqrt(3)/2)
+	love.graphics.draw(graphicsModel.object[index],x,y,math.rad(rot*60),zoom,zoom,geometry.hexres,geometry.hexres*math.sqrt(3)/2)
 end
 
 function map.open(params)
@@ -118,7 +119,7 @@ function map.draw()
 			love.graphics.setColor(1,1,1)
 
 			if hexfieldModel.hexfield[i][j].texture and hexfieldModel.hexfield[i][j].texture>0 then
-				love.graphics.draw(texture[hexfieldModel.hexfield[i][j].texture],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+				love.graphics.draw(graphicsModel.texture[hexfieldModel.hexfield[i][j].texture],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 			end
 			if hexfieldModel.hexfield[i][j].object.type>0 then
 				drawObject(hexfieldModel.hexfield[i][j].object.type,hexfieldModel.hexfield[i][j].object.rotation,((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y)*view.scale+center[2],view.scale)
@@ -131,7 +132,7 @@ function map.draw()
 			
 			if hexfieldModel.hexfield[i][j].unit.type>0 then
 				love.graphics.setColor(hexfieldModel.hexfield[i][j].unit.r,hexfieldModel.hexfield[i][j].unit.g,hexfieldModel.hexfield[i][j].unit.b)
-				love.graphics.draw(unit_graph[hexfieldModel.hexfield[i][j].unit.type],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+				love.graphics.draw(graphicsModel.unit[hexfieldModel.hexfield[i][j].unit.type],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 				love.graphics.setLineWidth(5)
 				if optionsModel.value("Show HP bars")=="always" or (xglow==i and yglow==j and glow and optionsModel.value("Show HP bars")) then
 					local hpPercentage = hexfieldModel.hexfield[i][j].unit.hp/hexfieldModel.hexfield[i][j].unit.maxhp
@@ -154,7 +155,7 @@ function map.draw()
 					love.graphics.setColor(1,1,1,1)
 					local buffspot=0
 					for k in pairs(hexfieldModel.hexfield[i][j].unit.bufflist) do
-						love.graphics.draw(buff_graph[k],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2+buffspot*16)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres+geometry.hexres*math.sqrt(3)/2+40-view.y-geometry.hexres)*view.scale+center[2],0,view.scale)
+						love.graphics.draw(graphicsModel.buff[k],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2+buffspot*16)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres+geometry.hexres*math.sqrt(3)/2+40-view.y-geometry.hexres)*view.scale+center[2],0,view.scale)
 						buffspot=buffspot+1
 					end
 				end
@@ -173,16 +174,16 @@ function map.draw()
 			geometry.hexfill((xglow-yglow)*geometry.hexres*3/2,-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres)
 		elseif clickMode=='texture' and textureChosen~=0 then
 			love.graphics.setColor(1,1,1,0.5)
-			love.graphics.draw(texture[textureChosen],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			love.graphics.draw(graphicsModel.texture[textureChosen],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 		elseif clickMode=='object' and objectChosen~=0 then
 			love.graphics.setColor(1,1,1,0.5)
 			drawObject(objectChosen,objectRotation,((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y)*view.scale+center[2],view.scale)
 		elseif clickMode=='unit' and unitChosen~=0 then
 			love.graphics.setColor(1,1,1,0.5)
-			love.graphics.draw(unit_graph[unitChosen],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			love.graphics.draw(graphicsModel.unit[unitChosen],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 		elseif clickMode=='unit drag' and unitdrag then
 			love.graphics.setColor(1,1,1,0.5)
-			love.graphics.draw(unit_graph[hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit.type],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			love.graphics.draw(graphicsModel.unit[hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit.type],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 		elseif clickMode=='object drag' and objectdrag then
 			love.graphics.setColor(1,1,1,0.5)
 			drawObject(hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object.type,hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object.rotation,((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y+56)*view.scale+center[2],view.scale)
@@ -208,7 +209,7 @@ function map.draw()
 	--"cover all" button
 	button({x=width-panel+100,y=160,width=100,height=20,highlight=false,lineWidth=1,text='COVER ALL'})
 	--texture sample
-	if textureChosen>0 then love.graphics.draw(texture[textureChosen],width-panel+10,200) end
+	if textureChosen>0 then love.graphics.draw(graphicsModel.texture[textureChosen],width-panel+10,200) end
 	--texture sample border
 	if (love.mouse.getX()>width-panel+10 and love.mouse.getX()<width-panel+138 and love.mouse.getY()>200 and love.mouse.getY()<311) or clickMode=='texture' then
 		love.graphics.setColor(0,0,1)
@@ -243,7 +244,7 @@ function map.draw()
 	--paint button
 	button({x=width-panel+220,y=560,width=50,height=50,highlight=(clickMode=='unit recolor'),lineWidth=3,image=buttonPaint,imageR=drawr,imageG=drawg,imageB=drawb})
 	--unit sample
-	button({x=width-panel+10,y=500,width=128,height=111,highlight=(clickMode=='unit'),lineWidth=3,image=unit_graph[unitChosen]})
+	button({x=width-panel+10,y=500,width=128,height=111,highlight=(clickMode=='unit'),lineWidth=3,image=graphicsModel.unit[unitChosen]})
 
 	love.graphics.setColor(1,1,1)
 
@@ -362,9 +363,11 @@ function map.mousepressed(x,y,button)
 			hexfieldModel.hexfield[xglow][yglow].unit.g=1
 			hexfieldModel.hexfield[xglow][yglow].unit.b=1
 		end
-	elseif (x>width-panel+10 and x<width-panel+120 and y>50 and y<150) or (x>width-panel+220 and x<width-panel+270 and y>560 and y<610) and button==2 then
+	elseif (x>width-panel+10 and x<width-panel+120 and y>50 and y<150) and button==2 then
 	 --switch to palette mode
-		states.switch("palette",{r=drawr,g=drawg,b=drawb,alpha=drawalpha})
+		states.switch("palette",{r=drawr,g=drawg,b=drawb,alpha=drawalpha,clickMode='color',rememberedMouseX=x,rememberedMouseY=y})
+	elseif (x>width-panel+220 and x<width-panel+270 and y>560 and y<610) and button==2 then
+		states.switch("palette",{r=drawr,g=drawg,b=drawb,alpha=drawalpha,clickMode='unit recolor',rememberedMouseX=x,rememberedMouseY=y})
 	elseif x>width-panel+10 and x<width-panel+138 and y>200 and y<311 and button==2 then --switch to texture mode
 		states.switch("selection",{item="texture",rememberedMouseX=x,rememberedMouseY=y})
 	elseif x>width-panel+10 and x<width-panel+138 and y>350 and y<461 and button==2 then --switch to object mode

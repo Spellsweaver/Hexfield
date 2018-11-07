@@ -1,5 +1,6 @@
 local geometry = require("hexagonalGeometryHelper")
 local states = require("states")
+local graphicsModel = require("models/graphicsModel")
 
 local selection = {}
 local offset = 0
@@ -16,13 +17,7 @@ function selection.open(params)
 	itemsFitY=math.floor(height/geometry.hexres/2)
 	itemName = params.item or "texture"
 	rememberedMouseX,rememberedMouseY = params.rememberedMouseX or 0,params.rememberedMouseY or 0
-	if itemName == "texture" then
-		targetGraphicsTable = texture
-	elseif itemName == "object" then
-		targetGraphicsTable = object_graph
-	elseif itemName == "unit" then
-		targetGraphicsTable = unit_graph
-	end
+	targetGraphicsTable = graphicsModel[itemName]
 end
 
 function selection.draw()

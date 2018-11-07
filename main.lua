@@ -15,7 +15,8 @@ local button = require("button")
 
 --Models
 local hexfieldModel = require("models/hexfieldModel")
-local optionsModel= require("models/optionsModel")
+local optionsModel = require("models/optionsModel")
+local graphicsModel = require("models/graphicsModel")
 
 function autosave()
 	hexfieldModel.save("autosave.hxm")
@@ -32,37 +33,9 @@ function love.load()
 	width,height = love.graphics.getDimensions()
 	love.window.setTitle ("Hexagonal field")
 	hexfieldModel.reset()
-
-	texture={}
-	local i=1
-	while love.filesystem.getInfo("textures/"..i..".png") do
-				texture[i]=love.graphics.newImage("textures/"..i..".png")		
-				i=i+1
-	end
-
-	i=1
-	object_graph={}
-	while love.filesystem.getInfo("objects/"..i..".png") do
-				object_graph[i]=love.graphics.newImage("objects/"..i..".png")		
-				i=i+1
-	end
-
-
-	i=1
-	unit_graph={}
-	while love.filesystem.getInfo("units/"..i..".png") do
-				unit_graph[i]=love.graphics.newImage("units/"..i..".png")		
-				i=i+1
-	end
-
-	i=1
-	buff_graph={}
-	while love.filesystem.getInfo("buffs/"..i..".png") do
-				buff_graph[i]=love.graphics.newImage("buffs/"..i..".png")		
-				i=i+1
-	end
 	love.filesystem.createDirectory("maps")
 
+	graphicsModel.preload()
 	optionsModel.initialize()
 	states.switch("map",{reset=true})
 end

@@ -2,6 +2,7 @@ local states = require("states")
 local button = require("button")
 --models
 local optionsModel = require("models/optionsModel")
+local graphicsModel = require("models/graphicsModel")
 
 local properties = {}
 
@@ -35,14 +36,14 @@ function properties.draw()
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle('line',width/2-128,height/2-356,256,256)
 
-	for i=1,#buff_graph do
+	for i=1,#graphicsModel.buff do
 
 		if (love.mouse.getX()>((i-1)%8)*32+width/2-128 and love.mouse.getX()<((i-1)%8)*32+width/2-96 and love.mouse.getY()>(math.ceil(i/8)-1)*32+height/2-356 and love.mouse.getY()<(math.ceil(i/8)-1)*32+height/2-324) 
 		or target.bufflist[i] then
 			love.graphics.setColor(1,1,1)
 			love.graphics.rectangle('fill',((i-1)%8)*32+width/2-128,(math.ceil(i/8)-1)*32+height/2-356,32,32)
 		end
-		love.graphics.draw(buff_graph[i],((i-1)%8)*32+width/2-128,(math.ceil(i/8)-1)*32+height/2-356,0,2)
+		love.graphics.draw(graphicsModel.buff[i],((i-1)%8)*32+width/2-128,(math.ceil(i/8)-1)*32+height/2-356,0,2)
 	end
 end
 
@@ -61,7 +62,7 @@ function properties.mousepressed(x,y,button)
 	elseif y<height/2+150 and y>height/2+100 and x>width/2-75 and x<width/2+75 then
 		states.switch("map")
 	elseif button==1 and x<width/2+128 and x>width/2-128 and y<height/2-100 and y>height/2-356 then
-		if (math.ceil((x-width/2+128)/32)+8*math.floor((y-height/2+356)/32)<=#buff_graph) then
+		if (math.ceil((x-width/2+128)/32)+8*math.floor((y-height/2+356)/32)<=#graphicsModel.buff) then
 			if not target.bufflist[math.ceil((x-width/2+128)/32)+8*math.floor((y-height/2+356)/32)] then
 				target.bufflist[math.ceil((x-width/2+128)/32)+8*math.floor((y-height/2+356)/32)]=true
 			else

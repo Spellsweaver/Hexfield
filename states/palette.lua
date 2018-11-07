@@ -5,12 +5,16 @@ local palette = {}
 --this screen serves as color selector
 
 local r,g,b,alpha = 1,1,1,0.5
+local clickMode
+local rememberedMouseX,rememberedMouseY
 
 function palette.open(params)
 	r = params.r or r
 	g = params.g or g
 	b = params.b or b
 	alpha = params.alpha or alpha
+	clickMode = params.clickMode or 'color'
+	rememberedMouseX,rememberedMouseY = params.rememberedMouseX or 0,params.rememberedMouseY or 0
 end
 
 function palette.keypressed(key,scancode)
@@ -63,10 +67,11 @@ function palette.mousepressed( x, y, button )
 			elseif y>390 and y<410 then
 				alpha=(355-x)/255
 			elseif y>500 and y<600 then
-				states.switch("map",{drawr=r,drawg=g,drawb=b,drawalpha=alpha,clickMode='color'})
-				love.mouse.setPosition(width-300+65,100)
+				states.switch("map",{drawr=r,drawg=g,drawb=b,drawalpha=alpha,clickMode=clickMode})
+				love.mouse.setPosition(rememberedMouseX,rememberedMouseY)
 			elseif y>650 and y<750 then
-				states.switch("map",{drawr=r,drawg=g,drawb=b,drawalpha=alpha,clickMode='color',colorall=true})
+				states.switch("map",{drawr=r,drawg=g,drawb=b,drawalpha=alpha,clickMode=clickMode,colorall=true})
+				love.mouse.setPosition(rememberedMouseX,rememberedMouseY)
 			end
 		end
 	end
