@@ -2,13 +2,11 @@ local geometry = require("hexagonalGeometryHelper")
 local button = require("button")
 local states = require("states")
 local deepcopy = require("deepcopy")
+local hexfieldModel = require("models/hexfieldModel")
 
 local map = {}
 ------
-hexfield = {}
----global
-local hexfield_backup
-local hexsize = 50
+local hexsize = hexfieldModel.hexsize
 
 local camdrag = false --indicates whether camera is being moved
 local unitdrag, objectdrag = false, false --indicates whether a unit/object is being moved
@@ -37,48 +35,6 @@ local buttonSave=love.graphics.newImage("buttons/save.png")
 local buttonLoad=love.graphics.newImage("buttons/load.png")
 local buttonOptions=love.graphics.newImage("buttons/options.png")
 
-local lastsavename=""
-
-local function fieldReset()
-	lastsavename=""
-	love.window.setTitle("Hexfield")
-		for i=-hexsize,hexsize do
-			hexfield[i]={}
-			for j=-hexsize,hexsize do
-				hexfield[i][j]=
-				{
-					color={0,0,0,0},
-					texture=1,
-					object=
-						{
-							type=0,
-							rotation=0
-						},
-					unit=
-						{
-							type=0,
-							hp=100,
-							maxhp=100,
-							r=1,
-							g=1,
-							b=1,
-							bufflist={},
-							text='',
-						}
-				}
-			end
-		end
-end
-
-local function colorAll()
-	backup()
-	for i=-hexsize,hexsize do
-			for j=-hexsize,hexsize do
-				hexfield[i][j].color={drawr,drawg,drawb,drawalpha}
-			end
-	end
-end
-
 local function mousepos()
 	local x, y = love.mouse.getPosition()
 	local x2=(x-center[1])/view.scale+view.x
@@ -90,18 +46,6 @@ local function drawObject(index,rot,x,y,zoom)
 	love.graphics.draw(object_graph[index],x,y,math.rad(rot*60),zoom,zoom,geometry.hexres,geometry.hexres*math.sqrt(3)/2)
 end
 
-function backup()
-	hexfield_backup=deepcopy(hexfield)
-end
-
-function restore()
-	if hexfield_backup then
-		local tmp=hexfield
-		hexfield=hexfield_backup
-		hexfield_backup=tmp
-	end
-end
-
 function map.open(params)
 	textureChosen=params.textureChosen or textureChosen
 	objectChosen=params.objectChosen or objectChosen
@@ -111,13 +55,12 @@ function map.open(params)
 	drawg=params.drawg or drawg
 	drawb=params.drawb or drawb
 	drawalpha=params.drawalpha or drawalpha
-	lastsavename=params.lastsavename or lastsavename
 
 	if params.reset then
-		fieldReset()
+		hexfieldModel.reset()
 	end
 	if params.colorall then
-		colorAll()
+		hexfieldModel.colorAll(drawr,drawg,drawb,drawalpha)
 	end
 end
 
@@ -137,12 +80,12 @@ function map.keypressed(key,scancode)
 		love.event.quit()
 	elseif  --Ctrl + S
 	scancode == "s" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
-	and (not love.keyboard.isDown("rshift") and not love.keyboard.isDown("lshift") or lastsavename=="") then
+	and (not love.keyboard.isDown("rshift") and not love.keyboard.isDown("lshift") or hexfieldModel.lastsavename=="") then
 		states.switch("saveload",{saving=true})
 	elseif --Ctrl + Shift + S
 	scancode == "s" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
-	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift") and lastsavename~="") then
-		states.switch("overwrite",{filetointeract=lastsavename})
+	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift") and hexfieldModel.lastsavename~="") then
+		states.switch("overwrite",{filetointeract=hexfieldModel.lastsavename})
 	elseif --Ctrl + O
 	scancode == "o" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and not love.keyboard.isDown("rshift") and not love.keyboard.isDown("lshift") then
@@ -154,11 +97,11 @@ function map.keypressed(key,scancode)
 	elseif --Ctrl + N
 	scancode == "n" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
 		autosave()
-		fieldReset()
-		backup()
+		model.reset()
+		hexfieldModel.backup()
 	elseif --Ctrl + Z
 	scancode == "z" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
-		restore()
+		model.restore()
 	end
 end
 
@@ -172,24 +115,24 @@ function map.draw()
 		for j=-hexsize,hexsize do
 			love.graphics.setColor(1,1,1)
 
-			if hexfield[i][j].texture and hexfield[i][j].texture>0 then
-				love.graphics.draw(texture[hexfield[i][j].texture],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			if hexfieldModel.hexfield[i][j].texture and hexfieldModel.hexfield[i][j].texture>0 then
+				love.graphics.draw(texture[hexfieldModel.hexfield[i][j].texture],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 			end
-			if hexfield[i][j].object.type>0 then
-				drawObject(hexfield[i][j].object.type,hexfield[i][j].object.rotation,((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y)*view.scale+center[2],view.scale)
+			if hexfieldModel.hexfield[i][j].object.type>0 then
+				drawObject(hexfieldModel.hexfield[i][j].object.type,hexfieldModel.hexfield[i][j].object.rotation,((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y)*view.scale+center[2],view.scale)
 			end
-			love.graphics.setColor(hexfield[i][j].color[1],hexfield[i][j].color[2],hexfield[i][j].color[3],hexfield[i][j].color[4])
+			love.graphics.setColor(hexfieldModel.hexfield[i][j].color[1],hexfieldModel.hexfield[i][j].color[2],hexfieldModel.hexfield[i][j].color[3],hexfieldModel.hexfield[i][j].color[4])
 			geometry.hexfill((i-j)*geometry.hexres*3/2,-(i+j)*math.sqrt(3)/2*geometry.hexres)
-			love.graphics.setColor(1-hexfield[i][j].color[1],1-hexfield[i][j].color[2],1-hexfield[i][j].color[3],1)
+			love.graphics.setColor(1-hexfieldModel.hexfield[i][j].color[1],1-hexfieldModel.hexfield[i][j].color[2],1-hexfieldModel.hexfield[i][j].color[3],1)
 			love.graphics.setLineWidth(1)
 			geometry.hex((i-j)*geometry.hexres*3/2,-(i+j)*math.sqrt(3)/2*geometry.hexres)
 			
-			if hexfield[i][j].unit.type>0 then
-				love.graphics.setColor(hexfield[i][j].unit.r,hexfield[i][j].unit.g,hexfield[i][j].unit.b)
-				love.graphics.draw(unit_graph[hexfield[i][j].unit.type],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			if hexfieldModel.hexfield[i][j].unit.type>0 then
+				love.graphics.setColor(hexfieldModel.hexfield[i][j].unit.r,hexfieldModel.hexfield[i][j].unit.g,hexfieldModel.hexfield[i][j].unit.b)
+				love.graphics.draw(unit_graph[hexfieldModel.hexfield[i][j].unit.type],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 				love.graphics.setLineWidth(5)
 				if optionValue("Show HP bars")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP bars")) then
-					local hpPercentage = hexfield[i][j].unit.hp/hexfield[i][j].unit.maxhp
+					local hpPercentage = hexfieldModel.hexfield[i][j].unit.hp/hexfieldModel.hexfield[i][j].unit.maxhp
 					love.graphics.setColor(1,0,0)
 					love.graphics.line( ((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64+geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2])
 					love.graphics.setColor(0,1,0)
@@ -197,7 +140,7 @@ function map.draw()
 				end
 
 				if optionValue("HP numbers mode")~="none" and (optionValue("Show HP numbers")=="always" or (xglow==i and yglow==j and glow and optionValue("Show HP numbers"))) then
-					local hpText = string.format("%d",hexfield[i][j].unit.hp)..(optionValue("HP numbers mode")=="current and max hp" and string.format("/%d",hexfield[i][j].unit.maxhp) or "")
+					local hpText = string.format("%d",hexfieldModel.hexfield[i][j].unit.hp)..(optionValue("HP numbers mode")=="current and max hp" and string.format("/%d",hexfieldModel.hexfield[i][j].unit.maxhp) or "")
 					love.graphics.setColor(0,0,0,0.5)
 					love.graphics.rectangle("fill",((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+60-view.y-geometry.hexres*2/3)*view.scale+center[2],geometry.hexres*view.scale,18*view.scale,6*view.scale,6*view.scale)
 					love.graphics.setColor(1,1,1)
@@ -205,10 +148,10 @@ function map.draw()
 					love.graphics.printf(hpText,((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2+56-view.y-geometry.hexres*2/3)*view.scale+center[2],geometry.hexres,"center",0,view.scale,view.scale,geometry.hexres/2)
 				end
 
-				if hexfield[i][j].unit.bufflist~={} then
+				if hexfieldModel.hexfield[i][j].unit.bufflist~={} then
 					love.graphics.setColor(1,1,1,1)
 					local buffspot=0
-					for k in pairs(hexfield[i][j].unit.bufflist) do
+					for k in pairs(hexfieldModel.hexfield[i][j].unit.bufflist) do
 						love.graphics.draw(buff_graph[k],((i-j)*geometry.hexres*3/2-geometry.hexres-view.x+64-geometry.hexres/2+buffspot*16)*view.scale+center[1],(-(i+j)*math.sqrt(3)/2*geometry.hexres+geometry.hexres*math.sqrt(3)/2+40-view.y-geometry.hexres)*view.scale+center[2],0,view.scale)
 						buffspot=buffspot+1
 					end
@@ -237,10 +180,10 @@ function map.draw()
 			love.graphics.draw(unit_graph[unitChosen],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 		elseif clickMode=='unit drag' and unitdrag then
 			love.graphics.setColor(1,1,1,0.5)
-			love.graphics.draw(unit_graph[hexfield[dragtarget.x][dragtarget.y].unit.type],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
+			love.graphics.draw(unit_graph[hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit.type],((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y)*view.scale+center[2],0,view.scale)
 		elseif clickMode=='object drag' and objectdrag then
 			love.graphics.setColor(1,1,1,0.5)
-			drawObject(hexfield[dragtarget.x][dragtarget.y].object.type,hexfield[dragtarget.x][dragtarget.y].object.rotation,((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y+56)*view.scale+center[2],view.scale)
+			drawObject(hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object.type,hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object.rotation,((xglow-yglow)*geometry.hexres*3/2-geometry.hexres-view.x+64)*view.scale+center[1],(-(xglow+yglow)*math.sqrt(3)/2*geometry.hexres-geometry.hexres*math.sqrt(3)/2-view.y+56)*view.scale+center[2],view.scale)
 
 		end
 	end
@@ -368,54 +311,54 @@ function map.mousepressed(x,y,button)
 		else clickMode=0
 		end		
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='color' and glow then --coloring
-		backup()
-		hexfield[xglow][yglow].color={drawr,drawg,drawb,drawalpha}
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].color={drawr,drawg,drawb,drawalpha}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='texture' and glow then --texture placement
-		backup()
-		hexfield[xglow][yglow].texture=textureChosen
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].texture=textureChosen
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='object' and glow then --object placement
-		backup()
-		hexfield[xglow][yglow].object.type=objectChosen
-		hexfield[xglow][yglow].object.rotation=objectRotation
-	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='properties' and hexfield[xglow][yglow].unit.type~=0 and glow then --hp set
-		backup()
-		states.switch('properties',{target=hexfield[xglow][yglow].unit})
-	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='unit drag' and hexfield[xglow][yglow].unit.type~=0 and glow then --drag initiation
-		backup()
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].object.type=objectChosen
+		hexfieldModel.hexfield[xglow][yglow].object.rotation=objectRotation
+	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='properties' and hexfieldModel.hexfield[xglow][yglow].unit.type~=0 and glow then --hp set
+		hexfieldModel.backup()
+		states.switch('properties',{target=hexfieldModel.hexfield[xglow][yglow].unit})
+	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='unit drag' and hexfieldModel.hexfield[xglow][yglow].unit.type~=0 and glow then --drag initiation
+		hexfieldModel.backup()
 		unitdrag=true
 		dragtarget={x=xglow,y=yglow}
-	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='object drag' and hexfield[xglow][yglow].object.type~=0 and glow then --obj drag initiation
-		backup()
+	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='object drag' and hexfieldModel.hexfield[xglow][yglow].object.type~=0 and glow then --obj drag initiation
+		hexfieldModel.backup()
 		objectdrag=true
 		dragtarget={x=xglow,y=yglow}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='unit' and glow then --unit placement
-		backup()
-		hexfield[xglow][yglow].unit.type=unitChosen
-		hexfield[xglow][yglow].unit.hp=100
-		hexfield[xglow][yglow].unit.maxhp=100
-		hexfield[xglow][yglow].unit.r=1
-		hexfield[xglow][yglow].unit.g=1
-		hexfield[xglow][yglow].unit.b=1
-		hexfield[xglow][yglow].unit.bufflist={}
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].unit.type=unitChosen
+		hexfieldModel.hexfield[xglow][yglow].unit.hp=100
+		hexfieldModel.hexfield[xglow][yglow].unit.maxhp=100
+		hexfieldModel.hexfield[xglow][yglow].unit.r=1
+		hexfieldModel.hexfield[xglow][yglow].unit.g=1
+		hexfieldModel.hexfield[xglow][yglow].unit.b=1
+		hexfieldModel.hexfield[xglow][yglow].unit.bufflist={}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='unit delete' 
-	and hexfield[xglow][yglow].unit.type~=0 and glow then --unit delete
-		backup()
-		hexfield[xglow][yglow].unit={type=0,hp=100,maxhp=100,r=1,g=1,b=1,bufflist={}}
+	and hexfieldModel.hexfield[xglow][yglow].unit.type~=0 and glow then --unit delete
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].unit={type=0,hp=100,maxhp=100,r=1,g=1,b=1,bufflist={}}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='object delete' 
-	and hexfield[xglow][yglow].object.type~=0 and glow then --object delete
-		backup()
-		hexfield[xglow][yglow].object={type=0,rotation=0}
+	and hexfieldModel.hexfield[xglow][yglow].object.type~=0 and glow then --object delete
+		hexfieldModel.backup()
+		hexfieldModel.hexfield[xglow][yglow].object={type=0,rotation=0}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==1 and clickMode=='unit recolor' 
-	and hexfield[xglow][yglow].unit.type~=0 and glow then --unit recolor
-		backup()
+	and hexfieldModel.hexfield[xglow][yglow].unit.type~=0 and glow then --unit recolor
+		hexfieldModel.backup()
 		if drawalpha~=0 then
-			hexfield[xglow][yglow].unit.r=drawr
-			hexfield[xglow][yglow].unit.g=drawg
-			hexfield[xglow][yglow].unit.b=drawb
+			hexfieldModel.hexfield[xglow][yglow].unit.r=drawr
+			hexfieldModel.hexfield[xglow][yglow].unit.g=drawg
+			hexfieldModel.hexfield[xglow][yglow].unit.b=drawb
 		else
-			hexfield[xglow][yglow].unit.r=1
-			hexfield[xglow][yglow].unit.g=1
-			hexfield[xglow][yglow].unit.b=1
+			hexfieldModel.hexfield[xglow][yglow].unit.r=1
+			hexfieldModel.hexfield[xglow][yglow].unit.g=1
+			hexfieldModel.hexfield[xglow][yglow].unit.b=1
 		end
 	elseif (x>width-panel+10 and x<width-panel+120 and y>50 and y<150) or (x>width-panel+220 and x<width-panel+270 and y>560 and y<610) and button==2 then
 	 --switch to palette mode
@@ -439,12 +382,12 @@ function map.mousepressed(x,y,button)
 	elseif x>width-panel+150 and x<width-panel+200 and y>350 and y<400 and button==2 then
 		objectRotation=(objectRotation+1)%6
 	elseif x>width-panel+100 and x<width-panel+200 and y>160 and y<180 and button==1 then
-		colorAll()
+		hexfieldModel.colorAll(drawr,drawg,drawb,drawalpha)
 	elseif x>width-panel+20 and x<width-panel+120 and y>320 and y<340 then
-		backup()
+		hexfieldModel.backup()
 		for i=-hexsize,hexsize do
 				for j=-hexsize,hexsize do
-					hexfield[i][j].texture=textureChosen
+					hexfieldModel.hexfield[i][j].texture=textureChosen
 				end
 		end
 	end
@@ -456,25 +399,25 @@ function map.mousereleased(x,y,button)
 	end
 
 	if button==1 and clickMode=='unit drag' and unitdrag then
-		if x<=(width-panel) and x>=0 and y>=0 and y<=height and hexfield[xglow][yglow].unit.type==0 then
-			hexfield[xglow][yglow].unit=hexfield[dragtarget.x][dragtarget.y].unit
-			hexfield[dragtarget.x][dragtarget.y].unit={type=0,hp=100,maxhp=100,r=255,g=255,b=255,bufflist={}}
+		if x<=(width-panel) and x>=0 and y>=0 and y<=height and hexfieldModel.hexfield[xglow][yglow].unit.type==0 then
+			hexfieldModel.hexfield[xglow][yglow].unit=hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit
+			hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit={type=0,hp=100,maxhp=100,r=255,g=255,b=255,bufflist={}}
 		elseif x<=(width-panel) and x>=0 and y>=0 and y<=height then
-			local tmpunit=hexfield[xglow][yglow].unit
-			hexfield[xglow][yglow].unit=hexfield[dragtarget.x][dragtarget.y].unit
-			hexfield[dragtarget.x][dragtarget.y].unit=tmpunit
+			local tmpunit=hexfieldModel.hexfield[xglow][yglow].unit
+			hexfieldModel.hexfield[xglow][yglow].unit=hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit
+			hexfieldModel.hexfield[dragtarget.x][dragtarget.y].unit=tmpunit
 		end
 		unitdrag=false
 	end
 
 	if button==1 and clickMode=='object drag' and objectdrag then
-		if x<=(width-panel) and x>=0 and y>=0 and y<=height and hexfield[xglow][yglow].object.type==0 then
-			hexfield[xglow][yglow].object=hexfield[dragtarget.x][dragtarget.y].object
-			hexfield[dragtarget.x][dragtarget.y].object={type=0,rotation=0}
+		if x<=(width-panel) and x>=0 and y>=0 and y<=height and hexfieldModel.hexfield[xglow][yglow].object.type==0 then
+			hexfieldModel.hexfield[xglow][yglow].object=hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object
+			hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object={type=0,rotation=0}
 		elseif x<=(width-panel) and x>=0 and y>=0 and y<=height then
-			local tmpobject=hexfield[xglow][yglow].object
-			hexfield[xglow][yglow].object=hexfield[dragtarget.x][dragtarget.y].object
-			hexfield[dragtarget.x][dragtarget.y].object=tmpobject
+			local tmpobject=hexfieldModel.hexfield[xglow][yglow].object
+			hexfieldModel.hexfield[xglow][yglow].object=hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object
+			hexfieldModel.hexfield[dragtarget.x][dragtarget.y].object=tmpobject
 		end
 		objectdrag=false
 	end
@@ -485,9 +428,9 @@ function map.mousemoved(x,y,dx,dy)
 		view.x=view.x-dx/view.scale
 		view.y=view.y-dy/view.scale
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and clickMode=='color' and glow and love.mouse.isDown(1) then --coloring
-		hexfield[xglow][yglow].color={drawr,drawg,drawb,drawalpha}
+		hexfieldModel.hexfield[xglow][yglow].color={drawr,drawg,drawb,drawalpha}
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and clickMode=='texture' and glow and love.mouse.isDown(1) then --coloring
-		hexfield[xglow][yglow].texture=textureChosen
+		hexfieldModel.hexfield[xglow][yglow].texture=textureChosen
 	end
 end
 

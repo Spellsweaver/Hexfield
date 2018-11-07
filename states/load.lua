@@ -1,6 +1,6 @@
 local states = require("states")
 local button = require("button")
-local fileHelper = require("fileHelper")
+local hexfieldModel = require("models/hexfieldModel")
 
 local load = {}
 local filetointeract
@@ -22,9 +22,8 @@ end
 
 function load.mousepressed(x,y,button)
 	if button==1 and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		love.window.setTitle(filetointeract.." - Hexfield")
-		hexfield = fileHelper.loadTableWithNegativeIndices("maps/"..filetointeract)
-		states.switch("map",{lastsavename=filetointeract,reset=(not hexfield[1][1])})
+		hexfieldModel.load(filetointeract)
+		states.switch("map")
 	elseif button==1 and y<height/2+150 and y>height/2+100 and x>2*width/3-75 and x<2*width/3+75 then
 		states.switch("map")
 	elseif button==1 and y<height-75 and y>height-125 and x>width-225 and x<width-75 then

@@ -2,6 +2,7 @@ local states = require("states")
 local utf8 = require("utf8")
 local button = require("button")
 local fileHelper = require("fileHelper")
+local hexfieldModel = require("models/hexfieldModel")
 
 local save = {}
 local filetointeract
@@ -26,8 +27,8 @@ function save.keypressed(key,scancode)
 			filetointeract = string.sub(filetointeract, 1, byteoffset - 1)
 		end
 	elseif (key == "return" or key == "kpenter") and filetointeract~="" then
-		fileHelper.saveTable("maps/"..filetointeract..".hxm",hexfield)
-		states.switch("map",{lastsavename=filetointeract..".hxm"})
+		hexfieldModel.save(filetointeract..".hxm")
+		states.switch("map")
 	end
 end
 
@@ -51,9 +52,8 @@ end
 
 function save.mousepressed(x,y,button)
 	if button==1 and filetointeract~="" and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		fileHelper.saveTable("maps/"..filetointeract..".hxm",hexfield)
-		love.window.setTitle(filetointeract..".hxm - Hexfield")
-		states.switch("map",{lastsavename=filetointeract..".hxm"})
+		hexfieldModel.save(filetointeract..".hxm")
+		states.switch("map")
 	elseif button==1 and y<height/2+150 and y>height/2+100 and x>2*width/3-75 and x<2*width/3+75 then
 		states.switch("map")
 	end

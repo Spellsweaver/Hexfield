@@ -9,13 +9,17 @@
 local utf8 = require("utf8")
 local states = require("states")
 local fileHelper = require("fileHelper")
+
+require("fonts")
 --Functions
 local deepcopy = require("deepcopy")
 local button = require("button")
-require("fonts")
+
+--Models
+local hexfieldModel = require("models/hexfieldModel")
 
 function autosave()
-	fileHelper.saveTable("maps/autosave.hxm", hexfield)
+	hexfieldModel.save("maps/autosave.hxm")
 	fileHelper.saveTable("options.json", options)
 	return false
 end
@@ -28,6 +32,7 @@ function love.load()
 	love.window.maximize()
 	width,height = love.graphics.getDimensions()
 	love.window.setTitle ("Hexagonal field")
+	hexfieldModel.reset()
 
 	texture={}
 	local i=1
@@ -89,7 +94,6 @@ function love.load()
 	end
 
 	states.switch("map",{reset=true})
-
 end
 
 function love.resize()
