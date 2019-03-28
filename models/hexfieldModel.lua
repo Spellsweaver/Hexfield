@@ -50,7 +50,7 @@ function model.colorAll(drawr,drawg,drawb,drawalpha)
 end
 
 function model.backup()
-	hexfield_backup=deepcopy(hexfield)
+	hexfield_backup=deepcopy(model.hexfield)
 end
 
 function model.restore()

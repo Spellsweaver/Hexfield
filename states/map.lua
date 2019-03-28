@@ -81,7 +81,7 @@ function map.keypressed(key,scancode)
 	elseif  --Ctrl + S
 	scancode == "s" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and (not love.keyboard.isDown("rshift") and not love.keyboard.isDown("lshift") or hexfieldModel.lastsavename=="") then
-		states.switch("saveload",{saving=true})
+		states.switch("saveload",{mode = "save"})
 	elseif --Ctrl + Shift + S
 	scancode == "s" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift") and hexfieldModel.lastsavename~="") then
@@ -89,7 +89,7 @@ function map.keypressed(key,scancode)
 	elseif --Ctrl + O
 	scancode == "o" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and not love.keyboard.isDown("rshift") and not love.keyboard.isDown("lshift") then
-		states.switch("saveload",{saving=false})
+		states.switch("saveload",{mode = "load"})
 	elseif --Ctrl + Shift + O
 	scancode == "o" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) then
@@ -97,11 +97,11 @@ function map.keypressed(key,scancode)
 	elseif --Ctrl + N
 	scancode == "n" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
 		autosave()
-		model.reset()
+		hexfieldModel.reset()
 		hexfieldModel.backup()
 	elseif --Ctrl + Z
 	scancode == "z" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
-		model.restore()
+		hexfieldModel.restore()
 	end
 end
 
