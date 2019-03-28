@@ -93,7 +93,7 @@ function map.keypressed(key,scancode)
 	elseif --Ctrl + Shift + O
 	scancode == "o" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 	and (love.keyboard.isDown("rshift") or love.keyboard.isDown("lshift")) then
-		love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/maps")
+		love.system.openURL("file://"..love.filesystem.getSaveDirectory())
 	elseif --Ctrl + N
 	scancode == "n" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
 		autosave()
