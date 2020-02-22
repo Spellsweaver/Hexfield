@@ -25,7 +25,7 @@ function option.mousepressed(x,y,button)
 end
 
 function option.keypressed(key,scancode)
-	if key == "escape" then
+	if key == "escape" or key == "return" then
 		states.switch("map")
 	end
 end

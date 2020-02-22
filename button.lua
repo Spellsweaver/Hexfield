@@ -10,8 +10,8 @@ local function button(options)
 	local lineWidth = options.lineWidth or 1
 	local image = options.image
 	local imageR,imageG,imageB = options.imageR or 1, options.imageG or 1, options.imageB or 1
-	local colorBasic = options.colorBasic or {0,0,0.45}
-	local colorHighlit = options.colorHighlit or {0,0,1}
+	local colorBasic = options.colorBasic or {0.1,0.1,0.8}
+	local colorHighlit = options.colorHighlit or {0.4,0.4,1}
 
 	if ((love.mouse.getX()>x and love.mouse.getX()<x+buttonWidth
 	and love.mouse.getY()>y and love.mouse.getY()<y+buttonHeight) or highlight)

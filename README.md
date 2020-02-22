@@ -1,4 +1,4 @@
-# Hexagonal field 1.3.4 (Hexfield)
+# Hexagonal field 1.3.5 (Hexfield)
 ## By Stanislav Baranov / Spellweaver (spellsweaver@gmail.com)
 
 This application is aimed on creating hexagonal field for a tabletop game, such as D&D, with some extra convenience features.
@@ -12,6 +12,7 @@ A single tile can only contain one static and one dynamic object.
 Since version 1.3.0 Hexfield allows save/load of maps.
 Since version 1.3.1 Hexfield automatically saves your map on exit.
 Since version 1.3.2 Hexfield allows hotkeys, supports all screen sizes and allows window resizing (it's recommended to keep window's height to at least 600).
+Version 1.3.5 adds d20 roller on the left side of the screen.
 
 Controls.
 Controls are supposed to be intuitive but this list might be useful if you missed something.

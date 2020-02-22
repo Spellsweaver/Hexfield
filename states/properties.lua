@@ -48,10 +48,23 @@ function properties.draw()
 end
 
 function properties.mousepressed(x,y,button)
-	if button==1 and y<height/2+10 and y>height/2-10 then
-		if x>=2*width/3+50 and x<=2*width/3+170 and y>=height/2-30 and y<=height/2+30 then
-			states.switch("maxhpset",{target=target})
-		elseif x<width/3 then
+	if button==1 and x>=2*width/3+50 and x<=2*width/3+170 and y>=height/2-30 and y<=height/2+30 then
+		states.switch("input",
+			{
+				staticText = "Input new max HP (only numbers accepted):\n",
+				inputText = target.maxhp,
+				callbackApply = 
+				function(inputText)
+					local newMaxHp = math.min(tonumber(inputText),1000000)
+					target.hp = target.hp*(newMaxHp/target.maxhp)
+					target.maxhp = newMaxHp
+					states.switch("properties",{target=target})
+				end,
+				callbackCancel = function(inputText) states.switch("properties",{target=target}) end
+			}
+		)
+	elseif button==1 and y<height/2+10 and y>height/2-10 then
+		if x<width/3 then
 			target.hp=0
 		elseif x<width*2/3 then
 			target.hp=
@@ -87,7 +100,7 @@ function properties.mousemoved(x, y, dx, dy)
 end
 
 function properties.keypressed(key,scancode)
-	if key == "escape" then
+	if key == "escape" or key == "return" then
 		states.switch("map")
 	end
 end

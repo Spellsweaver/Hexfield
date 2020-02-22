@@ -2,45 +2,51 @@ local states = require("states")
 local utf8 = require("utf8")
 local button = require("button")
 
-local maxhpset = {}
+local input = {}
 
-local target
-local maxhpnumber
+local inputText
 
 local flashPeriod = 0.5
 local flashTimeElapsed = 0
 local flashingSymbol = true
 
-function maxhpset.open(params)
-	target = params.target
-	maxhpnumber=target.maxhp or 0
+local staticText
+local callbackApply, callbackCancel
+
+function input.open(params)
+	inputText = params.inputText
+	staticText = params.staticText
+	callbackApply = params.callbackApply
+	callbackCancel = params.callbackCancel
 end
 
-function maxhpset.keypressed(key,scancode)
+function input.keypressed(key,scancode)
 	if key == "escape" then
 		states.switch("map")
 	elseif key == "backspace" then
-		local byteoffset = utf8.offset(maxhpnumber, -1)
+		local byteoffset = utf8.offset(inputText, - 1)
  
 		if byteoffset then
 			-- remove the last UTF-8 character.
 			-- string.sub operates on bytes rather than UTF-8 characters, so we couldn't do string.sub(text, 1, -2).
-			maxhpnumber = string.sub(maxhpnumber, 1, byteoffset - 1)
+			inputText = string.sub(inputText, 1, byteoffset - 1)
 		end
+	elseif key == "return" then
+		callbackApply(inputText)
 	end
 end
 
-function maxhpset.draw()
+function input.draw()
 	love.graphics.setColor(1,1,1)
 	love.graphics.setFont(largefont)
-	love.graphics.printf({{255,255,255},"Input new max HP (only numbers accepted):\n"..maxhpnumber,(flashingSymbol and {255,255,255} or {0,0,0}),"|"},width/2-200,height/2-100,400,"center")
+	love.graphics.printf({{255,255,255},staticText..inputText,(flashingSymbol and {255,255,255} or {0,0,0}),"|"},width/2-200,height/2-100,400,"center")
 	love.graphics.setFont(smallfont)
 
 	button({x=width/3-75,y=height/2+100,width=150,height=50,lineWidth=3,text='OK'})
 	button({x=2*width/3-75,y=height/2+100,width=150,height=50,lineWidth=3,text='Cancel'})
 end
 
-function maxhpset.update( dt )
+function input.update( dt )
 	flashTimeElapsed = flashTimeElapsed + dt
 	if flashTimeElapsed > flashPeriod then
 		flashTimeElapsed = flashTimeElapsed - flashPeriod
@@ -48,21 +54,18 @@ function maxhpset.update( dt )
 	end
 end
 
-function maxhpset.mousepressed(x,y,button)
+function input.mousepressed(x,y,button)
 	if button==1 and y<height/2+150 and y>height/2+100 and x>width/3-75 and x<width/3+75 then
-		local newMaxHp = tonumber(maxhpnumber)
-		target.hp = target.hp*(newMaxHp/target.maxhp)
-		target.maxhp = newMaxHp
-		states.switch("properties",{target=target})
+		callbackApply(inputText)
 	elseif button==1 and y<height/2+150 and y>height/2+100 and x>2*width/3-75 and x<2*width/3+75 then
-		states.switch("properties",{target=target})
+		callbackCancel(inputText)
 	end
 end
 
-function maxhpset.textinput(t)
+function input.textinput(t)
 	if tonumber(t) then
-		maxhpnumber = maxhpnumber .. t
+		inputText = inputText .. t
 	end
 end
 
-return maxhpset
+return input

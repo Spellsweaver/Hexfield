@@ -1,5 +1,6 @@
 local geometry = require("hexagonalGeometryHelper")
 local button = require("button")
+local diceroller = require("modules.diceroller")
 local states = require("states")
 local deepcopy = require("deepcopy")
 --models
@@ -64,7 +65,7 @@ function map.open(params)
 	end
 end
 
-function map.update()
+function map.update(dt)
 	local mx,my=mousepos()
 	local xhex,yhex=geometry.hexcoord(mx,my)
 	xglow,yglow=geometry.hextarget(xhex,yhex)
@@ -73,6 +74,8 @@ function map.update()
 		glow=true
 	else glow=false
 	end
+
+	diceroller.update(dt)
 end
 
 function map.keypressed(key,scancode)
@@ -209,9 +212,9 @@ function map.draw()
 	if textureChosen>0 then love.graphics.draw(graphicsModel.texture[textureChosen],width-panel+10,200) end
 	--texture sample border
 	if (love.mouse.getX()>width-panel+10 and love.mouse.getX()<width-panel+138 and love.mouse.getY()>200 and love.mouse.getY()<311) or clickMode=='texture' then
-		love.graphics.setColor(0,0,1)
+		love.graphics.setColor(0.4,0.4,1)
 	else
-		love.graphics.setColor(0,0,0.6)
+		love.graphics.setColor(0.1,0.1,0.8)
 	end
 	love.graphics.setLineWidth(3)
 	love.graphics.polygon('line',width-panel+42,200,width-panel+106,200,width-panel+138,256,width-panel+106,311,width-panel+42,311,width-panel+10,256)
@@ -253,6 +256,9 @@ function map.draw()
 	end
 
 	love.graphics.draw(buttonOptions,0,0)
+
+	--diceroller
+	diceroller.draw()
 end
 
 function map.wheelmoved(x,y)
@@ -266,6 +272,10 @@ function map.wheelmoved(x,y)
 end
 
 function map.mousepressed(x,y,button)
+	if diceroller.click(x,y) then
+		return
+	end
+
 	if x<=80 and y<=80 and x>=0 and y>=0 then --options
 		states.switch('option')
 	elseif x<=(width-panel) and x>=0 and y>=0 and y<=height and button==2 then --drag field
